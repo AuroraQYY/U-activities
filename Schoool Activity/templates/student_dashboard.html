@@ -1,0 +1,728 @@
+{% extends "base.html" %}
+
+{% block title %}学生仪表盘 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary">
+        <i class="bi bi-speedometer2"></i> 学生仪表盘
+    </h2>
+    <div>
+        <a href="{{ url_for('search_events') }}" class="btn btn-primary me-2">
+            <i class="bi bi-search"></i> 搜索活动
+        </a>
+        <a href="{{ url_for('favorites') }}" class="btn btn-outline-danger me-2">
+            <i class="bi bi-heart"></i> 我的收藏
+        </a>
+        <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-person"></i> 个人资料
+        </a>
+    </div>
+</div>
+
+<!-- 统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-primary text-white">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-calendar-check display-6 mb-3"></i>
+                <h3 class="stat-number">{{ events|length if events else 0 }}</h3>
+                <p class="stat-label mb-0">可报名活动</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-success text-white">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-bookmark-check display-6 mb-3"></i>
+                <h3 class="stat-number">{{ registered_events|length if registered_events else 0 }}</h3>
+                <p class="stat-label mb-0">已报名活动</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-warning text-white">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-chat-square-text display-6 mb-3"></i>
+                <h3 class="stat-number">{{ reviewable_events|length if reviewable_events else 0 }}</h3>
+                <p class="stat-label mb-0">待评价活动</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-info text-white">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-star display-6 mb-3"></i>
+                <h3 class="stat-number">{{ reviewed_events_count if reviewed_events_count else 0 }}</h3>
+                <p class="stat-label mb-0">已完成评价</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 标签页导航 -->
+<ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold" id="available-tab" data-bs-toggle="tab" data-bs-target="#available" type="button">
+            <i class="bi bi-calendar-event me-2"></i> 可报名活动
+            <span class="badge bg-primary ms-2">{{ events|length if events else 0 }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold" id="registered-tab" data-bs-toggle="tab" data-bs-target="#registered" type="button">
+            <i class="bi bi-bookmark-check me-2"></i> 已报名活动
+            <span class="badge bg-success ms-2">{{ registered_events|length if registered_events else 0 }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold" id="review-tab" data-bs-toggle="tab" data-bs-target="#review" type="button">
+            <i class="bi bi-chat-square-text me-2"></i> 待评价活动
+            <span class="badge bg-warning ms-2">{{ reviewable_events|length if reviewable_events else 0 }}</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content mt-4" id="dashboardTabsContent">
+    <!-- 可报名活动 -->
+    <div class="tab-pane fade show active" id="available" role="tabpanel">
+        {% if events and events|length > 0 %}
+            <div class="row">
+                {% for event in events %}
+                    <div class="col-xl-4 col-lg-6 mb-4">
+                        <div class="card event-card h-100">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0 text-truncate" style="max-width: 70%;" title="{{ event.title }}">
+                                    {{ event.title }}
+                                </h5>
+                                <div>
+                                    {% if event.status == 'upcoming' %}
+                                        <span class="badge bg-success">即将开始</span>
+                                    {% elif event.status == 'ongoing' %}
+                                        <span class="badge bg-warning">进行中</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ event.status }}</span>
+                                    {% endif %}
+                                    <span class="badge {% if event.registered_count >= event.max_participants %}bg-danger{% else %}bg-success{% endif %}">
+                                        {{ event.registered_count }}/{{ event.max_participants }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-muted">{{ event.description or '暂无描述' }}</p>
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-person-badge"></i> 主办方: {{ event.club_name }}
+                                    </small>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item px-0">
+                                        <i class="bi bi-calendar text-primary"></i> 
+                                        <strong>时间:</strong> {{ event.date_time }}
+                                    </li>
+                                    <li class="list-group-item px-0">
+                                        <i class="bi bi-geo-alt text-success"></i> 
+                                        <strong>地点:</strong> {{ event.location }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                {% if event.is_registered %}
+                                    <button class="btn btn-success w-100 mb-2" disabled>
+                                        <i class="bi bi-check-circle"></i> 已报名
+                                    </button>
+                                {% elif event.registered_count >= event.max_participants %}
+                                    <button class="btn btn-secondary w-100 mb-2" disabled>
+                                        <i class="bi bi-x-circle"></i> 人数已满
+                                    </button>
+                                {% else %}
+                                    <a href="{{ url_for('register_event', event_id=event.id) }}" 
+                                       class="btn btn-primary w-100 mb-2">
+                                        <i class="bi bi-plus-circle"></i> 立即报名
+                                    </a>
+                                {% endif %}
+                                
+                                <!-- 收藏按钮 -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="bi bi-eye"></i> {{ event.registered_count }} 人报名
+                                    </small>
+                                    <div>
+                                        {% if event.is_favorited %}
+                                            <a href="{{ url_for('unfavorite_event', event_id=event.id) }}" 
+                                               class="btn btn-outline-danger btn-sm"
+                                               title="取消收藏">
+                                                <i class="bi bi-heart-fill"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="{{ url_for('favorite_event', event_id=event.id) }}" 
+                                               class="btn btn-outline-danger btn-sm"
+                                               title="收藏活动">
+                                                <i class="bi bi-heart"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x display-1 text-muted"></i>
+                <h3 class="mt-3 text-muted">暂无活动可报名</h3>
+                <p class="text-muted">当前没有可报名的活动，请稍后再查看或联系社团发布新活动</p>
+                <div class="mt-3">
+                    <a href="{{ url_for('search_events') }}" class="btn btn-primary me-2">
+                        <i class="bi bi-search"></i> 搜索活动
+                    </a>
+                    <a href="{{ url_for('categories') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-tags"></i> 浏览分类
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- 已报名活动 -->
+    <div class="tab-pane fade" id="registered" role="tabpanel">
+        {% if registered_events and registered_events|length > 0 %}
+            <div class="row">
+                {% for event in registered_events %}
+                    <div class="col-xl-4 col-lg-6 mb-4">
+                        <div class="card event-card h-100">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0 text-truncate" style="max-width: 70%;" title="{{ event.title }}">
+                                    {{ event.title }}
+                                </h5>
+                                <div>
+                                    {% if event.status == 'upcoming' %}
+                                        <span class="badge bg-success">即将开始</span>
+                                    {% elif event.status == 'ongoing' %}
+                                        <span class="badge bg-warning">进行中</span>
+                                    {% elif event.status == 'completed' %}
+                                        <span class="badge bg-info">已结束</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ event.status }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-muted">{{ event.description or '暂无描述' }}</p>
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-person-badge"></i> 主办方: {{ event.club_name }}
+                                    </small>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item px-0">
+                                        <i class="bi bi-calendar text-primary"></i> 
+                                        <strong>时间:</strong> {{ event.date_time }}
+                                    </li>
+                                    <li class="list-group-item px-0">
+                                        <i class="bi bi-geo-alt text-success"></i> 
+                                        <strong>地点:</strong> {{ event.location }}
+                                    </li>
+                                    <li class="list-group-item px-0">
+                                        <i class="bi bi-clock text-warning"></i> 
+                                        <strong>状态:</strong> 
+                                        {% if event.status == 'upcoming' %}
+                                            <span class="text-success">即将开始</span>
+                                        {% elif event.status == 'ongoing' %}
+                                            <span class="text-warning">进行中</span>
+                                        {% elif event.status == 'completed' %}
+                                            <span class="text-info">已结束</span>
+                                        {% else %}
+                                            <span class="text-secondary">{{ event.status }}</span>
+                                        {% endif %}
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                {% if event.status == 'upcoming' or event.status == 'ongoing' %}
+                                    <a href="{{ url_for('cancel_registration', event_id=event.id) }}" 
+                                       class="btn btn-outline-danger w-100 mb-2"
+                                       onclick="return confirm('确定要取消报名吗？')">
+                                        <i class="bi bi-x-circle"></i> 取消报名
+                                    </a>
+                                {% elif event.status == 'completed' %}
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-success w-100" disabled>
+                                            <i class="bi bi-check-circle"></i> 活动已完成
+                                        </button>
+                                        {% set can_review = namespace(value=true) %}
+                                        {% for review_event in reviewable_events %}
+                                            {% if review_event.id == event.id %}
+                                                <a href="{{ url_for('review_event', event_id=event.id) }}" 
+                                                   class="btn btn-warning w-100">
+                                                    <i class="bi bi-star"></i> 评价活动
+                                                </a>
+                                                {% set can_review.value = false %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if can_review.value %}
+                                            <button class="btn btn-outline-secondary w-100" disabled>
+                                                <i class="bi bi-check2"></i> 已评价
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <button class="btn btn-secondary w-100" disabled>
+                                        <i class="bi bi-info-circle"></i> 活动已取消
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-bookmark-x display-1 text-muted"></i>
+                <h3 class="mt-3 text-muted">您还没有报名任何活动</h3>
+                <p class="text-muted">快去发现并报名感兴趣的活动吧！</p>
+                <div class="mt-3">
+                    <a href="{{ url_for('search_events') }}" class="btn btn-primary me-2">
+                        <i class="bi bi-search"></i> 搜索活动
+                    </a>
+                    <a href="{{ url_for('categories') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-tags"></i> 浏览分类
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- 待评价活动 -->
+    <div class="tab-pane fade" id="review" role="tabpanel">
+        {% if reviewable_events and reviewable_events|length > 0 %}
+            <div class="row">
+                {% for event in reviewable_events %}
+                    <div class="col-xl-4 col-lg-6 mb-4">
+                        <div class="card event-card h-100 border-warning">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0 text-truncate" style="max-width: 70%;" title="{{ event.title }}">
+                                    {{ event.title }}
+                                </h5>
+                                <div>
+                                    <span class="badge bg-warning">待评价</span>
+                                    <span class="badge bg-info">已结束</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-muted">{{ event.description or '暂无描述' }}</p>
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-person-badge"></i> 主办方: {{ event.club_name }}
+                                    </small>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item px-0">
+                                        <i class="bi bi-calendar text-primary"></i> 
+                                        <strong>时间:</strong> {{ event.date_time }}
+                                    </li>
+                                    <li class="list-group-item px-0">
+                                        <i class="bi bi-geo-alt text-success"></i> 
+                                        <strong>地点:</strong> {{ event.location }}
+                                    </li>
+                                    <li class="list-group-item px-0">
+                                        <i class="bi bi-clock text-warning"></i> 
+                                        <strong>状态:</strong> <span class="text-info">已结束</span>
+                                    </li>
+                                    <li class="list-group-item px-0">
+                                        <i class="bi bi-star text-warning"></i> 
+                                        <strong>评价状态:</strong> <span class="text-warning">待评价</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="{{ url_for('review_event', event_id=event.id) }}" 
+                                   class="btn btn-warning w-100">
+                                    <i class="bi bi-star"></i> 评价活动
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-chat-square-text display-1 text-muted"></i>
+                <h3 class="mt-3 text-muted">暂无需要评价的活动</h3>
+                <p class="text-muted">当您参与的活动结束后，可以在这里进行评价，帮助社团改进活动质量</p>
+                {% if registered_events and registered_events|length > 0 %}
+                <div class="mt-3">
+                    <a href="{{ url_for('dashboard') }}#registered" class="btn btn-primary">
+                        <i class="bi bi-arrow-left"></i> 查看已报名活动
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 快速操作区域 -->
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-lightning"></i> 快速操作
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="{{ url_for('search_events') }}" class="btn btn-outline-primary w-100 h-100 py-3">
+                    <i class="bi bi-search display-6 d-block mb-2"></i>
+                    搜索活动
+                    <small class="d-block text-muted mt-1">发现更多精彩</small>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('categories') }}" class="btn btn-outline-success w-100 h-100 py-3">
+                    <i class="bi bi-tags display-6 d-block mb-2"></i>
+                    活动分类
+                    <small class="d-block text-muted mt-1">按分类浏览</small>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('favorites') }}" class="btn btn-outline-danger w-100 h-100 py-3">
+                    <i class="bi bi-heart display-6 d-block mb-2"></i>
+                    我的收藏
+                    <small class="d-block text-muted mt-1">收藏的活动</small>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('profile') }}" class="btn btn-outline-warning w-100 h-100 py-3">
+                    <i class="bi bi-person display-6 d-block mb-2"></i>
+                    个人资料
+                    <small class="d-block text-muted mt-1">查看我的数据</small>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 活动参与统计 -->
+{% if registered_events and registered_events|length > 0 %}
+<div class="card mt-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-graph-up"></i> 活动参与统计
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-3 mb-3">
+                <div class="p-3">
+                    <h3 class="text-primary">{{ registered_events|length }}</h3>
+                    <p class="text-muted mb-0">总报名活动</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="p-3">
+                    <h3 class="text-success">{{ reviewed_events_count if reviewed_events_count else 0 }}</h3>
+                    <p class="text-muted mb-0">已评价活动</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="p-3">
+                    <h3 class="text-warning">{{ reviewable_events|length if reviewable_events else 0 }}</h3>
+                    <p class="text-muted mb-0">待评价活动</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="p-3">
+                    <h3 class="text-info">
+                        {% if registered_events|length > 0 %}
+                            {{ "%.1f"|format((reviewed_events_count / registered_events|length * 100) if reviewed_events_count else 0) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">评价完成率</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 进度条 -->
+        {% if registered_events|length > 0 %}
+        <div class="mt-4">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">评价完成进度</span>
+                <span class="text-muted">
+                    {{ reviewed_events_count if reviewed_events_count else 0 }}/{{ registered_events|length }}
+                </span>
+            </div>
+            <div class="progress" style="height: 12px;">
+                <div class="progress-bar bg-success" 
+                     data-width="{% if registered_events|length > 0 %}{{ (reviewed_events_count / registered_events|length * 100) if reviewed_events_count else 0 }}{% else %}0{% endif %}">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<style>
+    /* 统计卡片样式 */
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        transform: rotate(30deg);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px) scale(1.02);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stat-label {
+        font-size: 1rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+    
+    /* 标签页美化 */
+    .nav-tabs {
+        border-bottom: 3px solid #e9ecef;
+        border-radius: 15px 15px 0 0;
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+    }
+    
+    .nav-tabs .nav-link {
+        border: none;
+        border-radius: 12px;
+        margin: 0 5px;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        color: #6c757d;
+        background: rgba(108, 117, 125, 0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .nav-tabs .nav-link::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 3px;
+        background: var(--primary-gradient);
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+    }
+    
+    .nav-tabs .nav-link:hover {
+        color: #495057;
+        background: rgba(108, 117, 125, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .nav-tabs .nav-link:hover::before {
+        width: 80%;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #fff;
+        border: none;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    .nav-tabs .nav-link.active::before {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* 特定标签颜色 */
+    #available-tab.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    #registered-tab.active {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    #review-tab.active {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    /* 徽章样式 */
+    .nav-tabs .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+        border-radius: 10px;
+        font-weight: 700;
+    }
+    
+    /* 标签内容区域 */
+    .tab-content {
+        background: white;
+        border-radius: 0 0 20px 20px;
+        box-shadow: var(--shadow-soft);
+        padding: 2rem;
+        margin-top: -1px;
+    }
+    
+    .tab-pane {
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* 活动卡片样式 */
+    .event-card {
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .event-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    /* 移动端优化 */
+    @media (max-width: 768px) {
+        .nav-tabs .nav-link {
+            padding: 0.8rem 1rem;
+            margin: 2px;
+            font-size: 0.9rem;
+        }
+        
+        .nav-tabs .badge {
+            font-size: 0.7rem;
+            padding: 0.25em 0.5em;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 数字计数动画
+        function animateValue(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = Math.floor(progress * (end - start) + start);
+                element.textContent = value;
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // 为统计数字添加动画
+        const statNumbers = document.querySelectorAll('.stat-number');
+        statNumbers.forEach(stat => {
+            const finalValue = parseInt(stat.textContent);
+            animateValue(stat, 0, finalValue, 2000);
+        });
+
+        // 进度条动画
+        const progressBars = document.querySelectorAll('.progress-bar[data-width]');
+        progressBars.forEach(bar => {
+            const width = bar.getAttribute('data-width');
+            setTimeout(() => {
+                bar.style.width = width + '%';
+            }, 500);
+        });
+
+        // 标签页切换动画
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        tabPanes.forEach(pane => {
+            pane.addEventListener('show.bs.tab', function() {
+                this.style.opacity = '0';
+                this.style.transform = 'translateX(20px)';
+            });
+            
+            pane.addEventListener('shown.bs.tab', function() {
+                setTimeout(() => {
+                    this.style.opacity = '1';
+                    this.style.transform = 'translateX(0)';
+                    this.style.transition = 'all 0.3s ease';
+                }, 50);
+            });
+        });
+
+        // 收藏按钮交互效果
+        const favoriteButtons = document.querySelectorAll('.btn-outline-danger');
+        favoriteButtons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                if (this.querySelector('.bi-heart')) {
+                    this.classList.add('btn-danger');
+                    this.classList.remove('btn-outline-danger');
+                }
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                if (this.querySelector('.bi-heart')) {
+                    this.classList.remove('btn-danger');
+                    this.classList.add('btn-outline-danger');
+                }
+            });
+        });
+
+        // 自动激活上次选中的标签页
+        const activeTab = localStorage.getItem('activeStudentTab');
+        if (activeTab) {
+            const tabElement = document.getElementById(activeTab + '-tab');
+            if (tabElement) {
+                const tab = new bootstrap.Tab(tabElement);
+                tab.show();
+            }
+        }
+        
+        // 保存当前激活的标签页
+        const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabEls.forEach(tabEl => {
+            tabEl.addEventListener('shown.bs.tab', function (event) {
+                const activeTab = event.target.getAttribute('id').replace('-tab', '');
+                localStorage.setItem('activeStudentTab', activeTab);
+            });
+        });
+
+        // 页面加载完成后的初始化
+        console.log('学生仪表盘加载完成');
+        console.log(`可报名活动: {{ events|length if events else 0 }}`);
+        console.log(`已报名活动: {{ registered_events|length if registered_events else 0 }}`);
+        console.log(`待评价活动: {{ reviewable_events|length if reviewable_events else 0 }}`);
+        console.log(`已完成评价: {{ reviewed_events_count if reviewed_events_count else 0 }}`);
+    });
+</script>
+{% endblock %}

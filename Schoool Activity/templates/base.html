@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}校园活动报名与互评系统{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --info-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --shadow-soft: 0 4px 20px rgba(0,0,0,0.08);
+            --shadow-medium: 0 8px 30px rgba(0,0,0,0.12);
+            --shadow-large: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding-top: 0;
+        }
+
+        /* 导航栏美化 */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            box-shadow: var(--shadow-medium);
+            padding: 0.8rem 0;
+            border-radius: 0 0 20px 20px;
+            margin: 0 20px;
+            margin-top: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-brand i {
+            font-size: 1.8rem;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            padding: 0.7rem 1.2rem !important;
+            border-radius: 12px;
+            margin: 0 3px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white !important;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        /* 用户下拉菜单美化 */
+        .dropdown-menu {
+            border: none;
+            border-radius: 15px;
+            box-shadow: var(--shadow-medium);
+            backdrop-filter: blur(20px);
+            background: rgba(255,255,255,0.95);
+        }
+
+        .dropdown-item {
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            margin: 2px 8px;
+            width: auto;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-item:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .user-badge {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 移动端优化 */
+        .navbar-toggler {
+            border: none;
+            color: white !important;
+            font-size: 1.5rem;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .navbar {
+                margin: 0 10px;
+                border-radius: 0 0 15px 15px;
+            }
+            
+            .nav-link {
+                padding: 0.8rem 1rem !important;
+                margin: 2px 0;
+            }
+            
+            .dropdown-menu {
+                margin-top: 10px;
+            }
+        }
+
+        /* 其他样式保持不变 */
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-large);
+        }
+
+        .stat-card {
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(30deg);
+        }
+
+        .stat-card.bg-success { background: var(--success-gradient); }
+        .stat-card.bg-warning { background: var(--warning-gradient); }
+        .stat-card.bg-info { background: var(--info-gradient); }
+
+        .btn {
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 12px 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* 加载动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* 页面内容区域 */
+        .main-content {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-calendar-event"></i>
+                <span>校园活动系统</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- 主导航菜单 -->
+                <ul class="navbar-nav me-auto">
+                    {% if session.user_id %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" 
+                               href="{{ url_for('dashboard') }}">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>仪表盘</span>
+                            </a>
+                        </li>
+                        {% if session.role == 'club' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'create_event' %}active{% endif %}" 
+                                   href="{{ url_for('create_event') }}">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <span>发布活动</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'search_events' %}active{% endif %}" 
+                                   href="{{ url_for('search_events') }}">
+                                    <i class="bi bi-search"></i>
+                                    <span>搜索活动</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'categories' %}active{% endif %}" 
+                                   href="{{ url_for('categories') }}">
+                                    <i class="bi bi-tags"></i>
+                                    <span>活动分类</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.endpoint == 'favorites' %}active{% endif %}" 
+                                   href="{{ url_for('favorites') }}">
+                                    <i class="bi bi-heart"></i>
+                                    <span>我的收藏</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('index') }}">
+                                <i class="bi bi-house"></i>
+                                <span>首页</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+                <!-- 用户菜单 -->
+                <ul class="navbar-nav">
+                    {% if session.user_id %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" 
+                               href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-2"></i>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-semibold">{{ session.username }}</span>
+                                    <small class="user-badge">
+                                        {{ '社团账户' if session.role == 'club' else '学生账户' }}
+                                    </small>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('profile') }}">
+                                        <i class="bi bi-person me-2"></i>个人资料
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('change_password') }}">
+                                        <i class="bi bi-key me-2"></i>修改密码
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                                        <i class="bi bi-box-arrow-right me-2"></i>退出登录
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                <span>登录</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">
+                                <i class="bi bi-person-plus"></i>
+                                <span>注册</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <div class="container main-content">
+        <!-- 消息提示 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show fade-in-up mb-4" role="alert">
+                        <i class="bi bi-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="mt-5">
+        <div class="container py-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-2 text-primary">
+                        <i class="bi bi-calendar-event me-2"></i>校园活动系统
+                    </h5>
+                    <p class="text-muted mb-0">让校园生活更精彩，让活动参与更便捷</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="mt-2">
+                        <a href="{{ url_for('about') }}" class="text-muted text-decoration-none me-3">
+                            <i class="bi bi-info-circle"></i> 关于我们
+                        </a>
+                        <a href="{{ url_for('help_page') }}" class="text-muted text-decoration-none me-3">
+                            <i class="bi bi-question-circle"></i> 帮助
+                        </a>
+                        {% if session.user_id %}
+                        <a href="{{ url_for('health_check') }}" class="text-muted text-decoration-none">
+                            <i class="bi bi-heart-pulse"></i> 系统状态
+                        </a>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted mt-3 mb-0">&copy; 2025 校园活动系统. 保留所有权利.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 导航栏交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 当前页面高亮
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+
+            // 导航栏滚动效果
+            let lastScrollTop = 0;
+            const navbar = document.querySelector('.navbar');
+            
+            window.addEventListener('scroll', function() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    // 向下滚动
+                    navbar.style.transform = 'translateY(-100%)';
+                } else {
+                    // 向上滚动
+                    navbar.style.transform = 'translateY(0)';
+                }
+                
+                lastScrollTop = scrollTop;
+            });
+
+            // 下拉菜单动画
+            const dropdowns = document.querySelectorAll('.dropdown-menu');
+            dropdowns.forEach(dropdown => {
+                dropdown.style.transition = 'all 0.3s ease';
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}活动分类 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary">
+        <i class="bi bi-tags"></i> 活动分类
+    </h2>
+    <div>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回仪表盘
+        </a>
+    </div>
+</div>
+
+<!-- 分类统计 -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-tags display-6"></i>
+                <h4 class="mt-2">{{ categories|length }}</h4>
+                <p class="mb-0">分类数量</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-calendar-event display-6"></i>
+                <h4 class="mt-2">
+                    {% set total_events = namespace(value=0) %}
+                    {% for category in categories %}
+                        {% set total_events.value = total_events.value + (category.event_count or 0) %}
+                    {% endfor %}
+                    {{ total_events.value }}
+                </h4>
+                <p class="mb-0">总活动数</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-grid display-6"></i>
+                <h4 class="mt-2">
+                    {% if categories|length > 0 %}
+                        {{ "%.1f"|format(total_events.value / categories|length) }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </h4>
+                <p class="mb-0">平均活动数</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分类列表 -->
+<div class="row">
+    {% for category in categories %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 category-card">
+            <div class="card-header text-white category-header" data-color="{{ category.color }}">
+                <h5 class="card-title mb-0 d-flex align-items-center">
+                    <i class="bi bi-tag me-2"></i> 
+                    <span class="flex-grow-1">{{ category.name }}</span>
+                    <span class="badge bg-light text-dark">{{ category.event_count or 0 }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ category.description or '该分类暂无详细描述' }}</p>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> 点击查看该分类下的所有活动
+                    </small>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{{ url_for('events_by_category', category_id=category.id) }}" 
+                   class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search"></i> 浏览活动
+                    {% if category.event_count and category.event_count > 0 %}
+                    <span class="badge bg-primary ms-1">{{ category.event_count }}</span>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="bi bi-tags display-1 text-muted"></i>
+            <h3 class="mt-3 text-muted">暂无分类</h3>
+            <p class="text-muted">系统正在初始化分类数据，请稍后再来查看</p>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary mt-2">
+                <i class="bi bi-speedometer2"></i> 返回仪表盘
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 分类说明 -->
+<div class="card mt-5">
+    <div class="card-header bg-info text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-info-circle"></i> 分类说明
+        </h5>
+    </div>
+    <div class="card-body">
+        <p class="mb-3">活动分类系统帮助您更轻松地找到感兴趣的活动：</p>
+        <div class="row">
+            <div class="col-md-6">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <strong><i class="bi bi-cpu text-danger"></i> 技术竞赛</strong> 
+                        - 编程比赛、算法竞赛、创新项目等
+                    </li>
+                    <li class="mb-2">
+                        <strong><i class="bi bi-palette text-purple"></i> 艺术创作</strong> 
+                        - 绘画、摄影、设计、手工艺等
+                    </li>
+                    <li class="mb-2">
+                        <strong><i class="bi bi-trophy text-success"></i> 体育运动</strong> 
+                        - 各类体育比赛和健身活动
+                    </li>
+                    <li class="mb-2">
+                        <strong><i class="bi bi-mortarboard text-warning"></i> 学术讲座</strong> 
+                        - 专业知识分享、学术研讨会
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <strong><i class="bi bi-music-note-beamed text-pink"></i> 文艺表演</strong> 
+                        - 音乐会、舞蹈表演、戏剧等
+                    </li>
+                    <li class="mb-2">
+                        <strong><i class="bi bi-people-fill text-green"></i> 社会实践</strong> 
+                        - 志愿服务、社会调研等
+                    </li>
+                    <li class="mb-2">
+                        <strong><i class="bi bi-tools text-cyan"></i> 技能培训</strong> 
+                        - 工作坊、培训课程等
+                    </li>
+                    <li class="mb-2">
+                        <strong><i class="bi bi-controller text-yellow"></i> 娱乐休闲</strong> 
+                        - 游戏、观影、聚会等
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <p class="mb-0 mt-3">
+            <i class="bi bi-lightbulb"></i> 
+            <strong>提示：</strong>每个活动可以属于多个分类，方便您从不同角度发现感兴趣的内容。
+        </p>
+    </div>
+</div>
+
+<!-- 使用指南 -->
+<div class="card mt-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-book"></i> 使用指南
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6><i class="bi bi-search text-primary"></i> 如何找到活动？</h6>
+                <ul class="small">
+                    <li>点击分类卡片查看该分类下的所有活动</li>
+                    <li>使用搜索功能查找特定关键词的活动</li>
+                    <li>在仪表盘中浏览所有可报名的活动</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6><i class="bi bi-heart text-danger"></i> 如何管理兴趣？</h6>
+                <ul class="small">
+                    <li>收藏感兴趣的活动，方便以后查看</li>
+                    <li>关注特定分类，及时了解新活动</li>
+                    <li>报名参与后记得及时评价</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置分类头部颜色
+        const categoryHeaders = document.querySelectorAll('.category-header');
+        categoryHeaders.forEach(header => {
+            const color = header.getAttribute('data-color');
+            if (color) {
+                header.style.backgroundColor = color;
+            } else {
+                // 默认颜色
+                header.style.backgroundColor = '#6c757d';
+            }
+        });
+
+        // 添加分类卡片悬停效果
+        const categoryCards = document.querySelectorAll('.category-card');
+        categoryCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                this.style.transition = 'all 0.3s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            });
+        });
+
+        // 为浏览按钮添加悬停效果
+        const browseButtons = document.querySelectorAll('.card-footer .btn');
+        browseButtons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                const card = this.closest('.category-card');
+                const header = card.querySelector('.category-header');
+                const color = header.getAttribute('data-color');
+                
+                if (color) {
+                    this.style.borderColor = color;
+                    this.style.color = color;
+                }
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.borderColor = '';
+                this.style.color = '';
+            });
+        });
+
+        // 页面加载统计
+        console.log('分类页面加载完成');
+        console.log(`分类数量: {{ categories|length }}`);
+        
+        // 分类活动数量统计（移除了错误的Jinja2循环）
+        const categoryElements = document.querySelectorAll('.category-card');
+        categoryElements.forEach(card => {
+            const categoryName = card.querySelector('.card-title span').textContent;
+            const eventCount = card.querySelector('.badge').textContent;
+            console.log(`${categoryName}: ${eventCount} 个活动`);
+        });
+    });
+</script>
+
+<style>
+    .category-card {
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .category-header {
+        transition: all 0.3s ease;
+    }
+    
+    .text-purple {
+        color: #6f42c1 !important;
+    }
+    
+    .text-pink {
+        color: #e83e8c !important;
+    }
+    
+    .text-green {
+        color: #28a745 !important;
+    }
+    
+    .text-cyan {
+        color: #17a2b8 !important;
+    }
+    
+    .text-yellow {
+        color: #ffc107 !important;
+    }
+    
+    .card-footer .btn {
+        transition: all 0.3s ease;
+    }
+    
+    .list-unstyled li {
+        padding-left: 1rem;
+        border-left: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .list-unstyled li:hover {
+        border-left-color: #007bff;
+        background-color: #f8f9fa;
+        padding-left: 1.5rem;
+    }
+</style>
+{% endblock %}

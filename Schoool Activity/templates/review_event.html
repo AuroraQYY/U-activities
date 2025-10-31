@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}评价活动 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-star"></i> 评价活动
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <!-- 活动信息 -->
+                <div class="card mb-4 border-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ event.title }}</h5>
+                        <p class="card-text text-muted">{{ event.description or '暂无描述' }}</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small><i class="bi bi-calendar text-primary"></i> {{ event.date_time }}</small>
+                            </div>
+                            <div class="col-md-6">
+                                <small><i class="bi bi-geo-alt text-success"></i> {{ event.location }}</small>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small><i class="bi bi-person-badge text-info"></i> 主办方: {{ event.club_name }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post">
+                    <!-- 内容丰富度评分 -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-journal-text"></i> 内容丰富度评分
+                        </label>
+                        <div class="rating-container mb-2">
+                            {% for i in range(5, 0, -1) %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input rating-input" type="radio" name="content_score" 
+                                       id="content{{ i }}" value="{{ i }}" required>
+                                <label class="form-check-label rating-label" for="content{{ i }}">
+                                    {{ i }}分
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-muted small">
+                            1分: 内容贫乏 | 2分: 内容一般 | 3分: 内容充实 | 4分: 内容丰富 | 5分: 内容精彩
+                        </div>
+                    </div>
+
+                    <!-- 组织有序性评分 -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-diagram-3"></i> 组织有序性评分
+                        </label>
+                        <div class="rating-container mb-2">
+                            {% for i in range(5, 0, -1) %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input rating-input" type="radio" name="organization_score" 
+                                       id="org{{ i }}" value="{{ i }}" required>
+                                <label class="form-check-label rating-label" for="org{{ i }}">
+                                    {{ i }}分
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-muted small">
+                            1分: 组织混乱 | 2分: 组织一般 | 3分: 组织有序 | 4分: 组织良好 | 5分: 组织完美
+                        </div>
+                    </div>
+
+                    <!-- 留言评价 -->
+                    <div class="mb-4">
+                        <label for="comment" class="form-label fw-semibold">
+                            <i class="bi bi-chat-text"></i> 留言评价
+                        </label>
+                        <textarea class="form-control" id="comment" name="comment" rows="4" 
+                                  placeholder="请分享您对这次活动的感受、建议或改进意见..."></textarea>
+                        <div class="form-text">您的反馈将帮助社团改进未来的活动质量</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="bi bi-check-circle"></i> 提交评价
+                        </button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> 返回仪表盘
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 星级评分交互效果
+    document.addEventListener('DOMContentLoaded', function() {
+        const ratingInputs = document.querySelectorAll('.rating-input');
+        const ratingLabels = document.querySelectorAll('.rating-label');
+        
+        ratingLabels.forEach(label => {
+            label.addEventListener('mouseenter', function() {
+                const value = parseInt(this.htmlFor.replace('content', '').replace('org', ''));
+                const group = this.closest('.rating-container');
+                const labels = group.querySelectorAll('.rating-label');
+                
+                labels.forEach((l, index) => {
+                    if (5 - index <= value) {
+                        l.style.color = '#ffc107';
+                    } else {
+                        l.style.color = '#ddd';
+                    }
+                });
+            });
+            
+            label.addEventListener('mouseleave', function() {
+                const group = this.closest('.rating-container');
+                const labels = group.querySelectorAll('.rating-label');
+                const checkedInput = group.querySelector('.rating-input:checked');
+                
+                labels.forEach(l => {
+                    l.style.color = '#ddd';
+                });
+                
+                if (checkedInput) {
+                    const value = parseInt(checkedInput.value);
+                    labels.forEach((l, index) => {
+                        if (5 - index <= value) {
+                            l.style.color = '#ffc107';
+                        }
+                    });
+                }
+            });
+        });
+        
+        ratingInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const value = parseInt(this.value);
+                const group = this.closest('.rating-container');
+                const labels = group.querySelectorAll('.rating-label');
+                
+                labels.forEach((l, index) => {
+                    if (5 - index <= value) {
+                        l.style.color = '#ffc107';
+                    } else {
+                        l.style.color = '#ddd';
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

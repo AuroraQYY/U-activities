@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+
+{% block title %}搜索活动 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary">
+        <i class="bi bi-search"></i> 搜索活动
+    </h2>
+    <div>
+        <a href="{{ url_for('categories') }}" class="btn btn-outline-info me-2">
+            <i class="bi bi-tags"></i> 浏览分类
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回仪表盘
+        </a>
+    </div>
+</div>
+
+<!-- 搜索框 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('search_events') }}">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label for="q" class="form-label fw-semibold">
+                        <i class="bi bi-search"></i> 搜索关键词
+                    </label>
+                    <input type="text" class="form-control form-control-lg" id="q" name="q" value="{{ query }}" 
+                           placeholder="搜索活动标题、描述、主办方或地点...">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-search"></i> 搜索活动
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="form-text">
+                        <i class="bi bi-lightbulb"></i> 提示：您可以搜索活动标题、描述内容、主办方名称或活动地点
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- 快速分类筛选 -->
+<!--  
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h6 class="card-title mb-0">
+            <i class="bi bi-funnel"></i> 快速分类筛选
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            {% for category in categories %}
+            <div class="col-auto">
+                <a href="{{ url_for('events_by_category', category_id=category.id) }}" 
+                   class="btn btn-outline-secondary btn-sm">
+                    <span class="category-badge me-1" data-color="{{ category.color }}"></span>
+                    {{ category.name }}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div> -->
+
+{% if query %}
+    <div class="alert alert-info mb-4">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-info-circle display-6 me-3"></i>
+            <div>
+                <h6 class="alert-heading mb-1">搜索结果</h6>
+                <p class="mb-0">搜索 "<strong>{{ query }}</strong>" 找到 {{ events|length }} 个相关活动</p>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- 活动列表 -->
+{% if events and events|length > 0 %}
+    <div class="row">
+        {% for event in events %}
+            <div class="col-xl-4 col-lg-6 mb-4">
+                <div class="card event-card h-100">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 text-truncate" style="max-width: 70%;" title="{{ event.title }}">
+                            {{ event.title }}
+                        </h5>
+                        <div>
+                            {% if event.status == 'upcoming' %}
+                                <span class="badge bg-success">即将开始</span>
+                            {% elif event.status == 'ongoing' %}
+                                <span class="badge bg-warning">进行中</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ event.status }}</span>
+                            {% endif %}
+                            <span class="badge {% if event.registered_count >= event.max_participants %}bg-danger{% else %}bg-success{% endif %}">
+                                {{ event.registered_count }}/{{ event.max_participants }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text text-muted">{{ event.description or '暂无描述' }}</p>
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-person-badge"></i> 主办方: {{ event.club_name }}
+                            </small>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-calendar text-primary"></i> 
+                                <strong>时间:</strong> {{ event.date_time }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-geo-alt text-success"></i> 
+                                <strong>地点:</strong> {{ event.location }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-people text-info"></i> 
+                                <strong>报名情况:</strong> 
+                                <span class="{% if event.registered_count >= event.max_participants %}text-danger{% else %}text-success{% endif %}">
+                                    {{ event.registered_count }} 人已报名
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        {% if event.is_registered %}
+                            <button class="btn btn-success w-100 mb-2" disabled>
+                                <i class="bi bi-check-circle"></i> 已报名
+                            </button>
+                        {% elif event.registered_count >= event.max_participants %}
+                            <button class="btn btn-secondary w-100 mb-2" disabled>
+                                <i class="bi bi-x-circle"></i> 人数已满
+                            </button>
+                        {% else %}
+                            <a href="{{ url_for('register_event', event_id=event.id) }}" 
+                               class="btn btn-primary w-100 mb-2">
+                                <i class="bi bi-plus-circle"></i> 立即报名
+                            </a>
+                        {% endif %}
+                        
+                        <!-- 收藏按钮 -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-eye"></i> {{ event.registered_count }} 人关注
+                            </small>
+                            <div>
+                                {% if event.is_favorited %}
+                                    <a href="{{ url_for('unfavorite_event', event_id=event.id) }}" 
+                                       class="btn btn-outline-danger btn-sm"
+                                       title="取消收藏">
+                                        <i class="bi bi-heart-fill"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('favorite_event', event_id=event.id) }}" 
+                                       class="btn btn-outline-danger btn-sm"
+                                       title="收藏活动">
+                                        <i class="bi bi-heart"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- 分页信息 -->
+    <div class="alert alert-light text-center mt-4">
+        <small class="text-muted">
+            显示 {{ events|length }} 个活动 | 
+            <a href="{{ url_for('dashboard') }}" class="text-decoration-none">查看所有可报名活动</a>
+        </small>
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        {% if query %}
+            <i class="bi bi-search display-1 text-muted"></i>
+            <h3 class="mt-3 text-muted">没有找到相关活动</h3>
+            <p class="text-muted">尝试使用其他关键词搜索，或浏览分类来发现更多精彩活动</p>
+            <div class="mt-4">
+                <a href="{{ url_for('categories') }}" class="btn btn-primary me-2">
+                    <i class="bi bi-tags"></i> 浏览分类
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-speedometer2"></i> 返回仪表盘
+                </a>
+            </div>
+            
+            <!-- 搜索建议 -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-lightbulb"></i> 搜索建议
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 col-6 mb-2">
+                            <small class="text-muted d-block">尝试搜索</small>
+                            <a href="{{ url_for('search_events') }}?q=编程" class="btn btn-outline-info btn-sm w-100">编程</a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <small class="text-muted d-block">尝试搜索</small>
+                            <a href="{{ url_for('search_events') }}?q=体育" class="btn btn-outline-info btn-sm w-100">体育</a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <small class="text-muted d-block">尝试搜索</small>
+                            <a href="{{ url_for('search_events') }}?q=艺术" class="btn btn-outline-info btn-sm w-100">艺术</a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <small class="text-muted d-block">尝试搜索</small>
+                            <a href="{{ url_for('search_events') }}?q=讲座" class="btn btn-outline-info btn-sm w-100">讲座</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <i class="bi bi-calendar-event display-1 text-muted"></i>
+            <h3 class="mt-3 text-muted">请输入搜索关键词</h3>
+            <p class="text-muted">搜索活动标题、描述、主办方名称或地点来找到您感兴趣的活动</p>
+            <div class="mt-3">
+                <a href="{{ url_for('categories') }}" class="btn btn-primary me-2">
+                    <i class="bi bi-tags"></i> 浏览分类
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-speedometer2"></i> 查看所有活动
+                </a>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+
+<!-- 热门活动推荐 -->
+{% if not query or (query and events|length == 0) %}
+<div class="card mt-5">
+    <div class="card-header bg-warning text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-fire"></i> 热门活动推荐
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card border-warning mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title text-warning">
+                            <i class="bi bi-cpu"></i> 技术类活动
+                        </h6>
+                        <p class="card-text small">编程竞赛、技术讲座、创新项目展示等</p>
+                        <a href="{{ url_for('search_events') }}?q=技术" class="btn btn-outline-warning btn-sm">查看技术活动</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-success mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title text-success">
+                            <i class="bi bi-trophy"></i> 体育类活动
+                        </h6>
+                        <p class="card-text small">篮球比赛、羽毛球赛、健身训练等</p>
+                        <a href="{{ url_for('search_events') }}?q=体育" class="btn btn-outline-success btn-sm">查看体育活动</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置分类徽章颜色
+        const categoryBadges = document.querySelectorAll('.category-badge');
+        categoryBadges.forEach(badge => {
+            const color = badge.getAttribute('data-color');
+            if (color) {
+                badge.style.backgroundColor = color;
+            } else {
+                badge.style.backgroundColor = '#6c757d';
+            }
+        });
+
+        // 添加活动卡片悬停效果
+        const eventCards = document.querySelectorAll('.event-card');
+        eventCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                this.style.transition = 'all 0.3s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            });
+        });
+
+        // 收藏按钮交互效果
+        const favoriteButtons = document.querySelectorAll('.btn-outline-danger');
+        favoriteButtons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                if (this.querySelector('.bi-heart')) {
+                    this.classList.add('btn-danger');
+                    this.classList.remove('btn-outline-danger');
+                }
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                if (this.querySelector('.bi-heart')) {
+                    this.classList.remove('btn-danger');
+                    this.classList.add('btn-outline-danger');
+                }
+            });
+        });
+
+        // 搜索框自动聚焦
+        const searchInput = document.getElementById('q');
+        if (searchInput && !searchInput.value) {
+            searchInput.focus();
+        }
+
+        // 页面加载统计
+        console.log('搜索页面加载完成');
+        console.log(`搜索关键词: {{ query or '无' }}`);
+        console.log(`找到活动数量: {{ events|length }}`);
+    });
+</script>
+
+<style>
+    .event-card {
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .category-badge {
+        width: 10px;
+        height: 10px;
+        display: inline-block;
+        border-radius: 50%;
+        vertical-align: middle;
+    }
+    
+    .btn-outline-danger:hover .bi-heart {
+        animation: pulse 0.6s ease-in-out;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+    
+    .card-header .badge {
+        font-size: 0.7em;
+    }
+    
+    .alert .display-6 {
+        font-size: 2rem;
+    }
+</style>
+{% endblock %}

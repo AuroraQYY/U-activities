@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block title %}个人资料 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-circle"></i> 个人信息
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-person-badge display-1 text-primary"></i>
+                </div>
+                <h4>{{ user.username }}</h4>
+                <p class="text-muted">学生用户</p>
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-envelope"></i> 
+                        {{ user.email or '未设置邮箱' }}
+                    </small>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar"></i> 
+                        注册时间: {{ user.created_at[:10] }}
+                    </small>
+                </div>
+                <a href="{{ url_for('change_password') }}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-key"></i> 修改密码
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- 活动统计 -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i> 活动统计
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border rounded bg-light">
+                            <h3 class="text-primary">{{ registered_count }}</h3>
+                            <p class="mb-0">已报名活动</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border rounded bg-light">
+                            <h3 class="text-success">{{ reviewed_count }}</h3>
+                            <p class="mb-0">已评价活动</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border rounded bg-light">
+                            <h3 class="text-info">{{ registered_count - reviewed_count }}</h3>
+                            <p class="mb-0">待评价活动</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 进度条显示 -->
+                {% if registered_count > 0 %}
+                <div class="mt-4">
+                    <h6 class="text-muted mb-3">活动参与进度</h6>
+                    
+                    <!-- 已评价进度 -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-success">
+                                <i class="bi bi-check-circle"></i> 已评价活动
+                            </span>
+                            <span class="text-muted">
+                                {{ reviewed_count }} / {{ registered_count }} 
+                                ({{ "%.1f"|format(reviewed_count / registered_count * 100) if registered_count > 0 else 0 }}%)
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" data-width="{{ (reviewed_count / registered_count * 100) if registered_count > 0 else 0 }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 待评价进度 -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-warning">
+                                <i class="bi bi-clock"></i> 待评价活动
+                            </span>
+                            <span class="text-muted">
+                                {{ registered_count - reviewed_count }} / {{ registered_count }}
+                                ({{ "%.1f"|format((registered_count - reviewed_count) / registered_count * 100) if registered_count > 0 else 0 }}%)
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-warning" data-width="{{ ((registered_count - reviewed_count) / registered_count * 100) if registered_count > 0 else 0 }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="bi bi-info-circle text-muted display-6"></i>
+                    <p class="text-muted mt-2">您还没有报名任何活动</p>
+                    <a href="{{ url_for('search_events') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-search"></i> 去发现活动
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 最近活动记录 -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history"></i> 最近活动记录
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if registered_count > 0 %}
+                    <div class="list-group list-group-flush">
+                        <!-- 最近报名的活动 -->
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-bookmark-check text-primary"></i>
+                                    <span class="ms-2">最近报名活动</span>
+                                </div>
+                                <span class="badge bg-primary">{{ registered_count }} 个</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 最近评价的活动 -->
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-star text-warning"></i>
+                                    <span class="ms-2">已评价活动</span>
+                                </div>
+                                <span class="badge bg-warning text-dark">{{ reviewed_count }} 个</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 待评价的活动 -->
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-chat-square-text text-info"></i>
+                                    <span class="ms-2">待评价活动</span>
+                                </div>
+                                <span class="badge bg-info">{{ registered_count - reviewed_count }} 个</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 参与度统计 -->
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="text-muted mb-3">参与度分析</h6>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <h4 class="text-primary mb-1">{{ reviewed_count }}</h4>
+                                    <small class="text-muted">已完成评价</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <h4 class="text-warning mb-1">{{ registered_count - reviewed_count }}</h4>
+                                    <small class="text-muted">待完成评价</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% if registered_count > 0 %}
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted">评价完成率</small>
+                                <small class="text-muted">{{ "%.1f"|format(reviewed_count / registered_count * 100) if registered_count > 0 else 0 }}%</small>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-success" data-width="{{ (reviewed_count / registered_count * 100) if registered_count > 0 else 0 }}">
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-calendar-plus display-4 text-muted"></i>
+                        <h5 class="mt-3 text-muted">暂无活动记录</h5>
+                        <p class="text-muted">开始报名参加活动，丰富您的校园生活</p>
+                        <div class="mt-3">
+                            <a href="{{ url_for('search_events') }}" class="btn btn-primary me-2">
+                                <i class="bi bi-search"></i> 搜索活动
+                            </a>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-speedometer2"></i> 查看仪表盘
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 快速操作 -->
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning"></i> 快速操作
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary w-100 h-100 py-3">
+                            <i class="bi bi-speedometer2 display-6 d-block mb-2"></i>
+                            仪表盘
+                            <small class="d-block text-muted mt-1">查看最新活动</small>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('search_events') }}" class="btn btn-outline-success w-100 h-100 py-3">
+                            <i class="bi bi-search display-6 d-block mb-2"></i>
+                            搜索活动
+                            <small class="d-block text-muted mt-1">发现更多精彩</small>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('change_password') }}" class="btn btn-outline-warning w-100 h-100 py-3">
+                            <i class="bi bi-key display-6 d-block mb-2"></i>
+                            修改密码
+                            <small class="d-block text-muted mt-1">保护账户安全</small>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger w-100 h-100 py-3">
+                            <i class="bi bi-box-arrow-right display-6 d-block mb-2"></i>
+                            退出登录
+                            <small class="d-block text-muted mt-1">安全退出系统</small>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 待办事项提醒 -->
+                {% if registered_count - reviewed_count > 0 %}
+                <div class="alert alert-warning mt-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle display-6 me-3"></i>
+                        <div>
+                            <h6 class="alert-heading mb-1">有待评价的活动</h6>
+                            <p class="mb-0">您有 <strong>{{ registered_count - reviewed_count }}</strong> 个已结束的活动等待评价，快去分享您的参与体验吧！</p>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-star"></i> 立即评价
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- 成就徽章 -->
+                <div class="mt-4">
+                    <h6 class="text-muted mb-3">我的成就</h6>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="p-2">
+                                <i class="bi bi-award display-6 text-primary"></i>
+                                <div class="mt-1">
+                                    <small class="text-muted">活动达人</small>
+                                    <br>
+                                    <span class="badge bg-primary">Lv.{{ (registered_count // 5) + 1 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2">
+                                <i class="bi bi-chat-square-quote display-6 text-success"></i>
+                                <div class="mt-1">
+                                    <small class="text-muted">评价专家</small>
+                                    <br>
+                                    <span class="badge bg-success">Lv.{{ (reviewed_count // 3) + 1 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2">
+                                <i class="bi bi-graph-up display-6 text-info"></i>
+                                <div class="mt-1">
+                                    <small class="text-muted">参与度</small>
+                                    <br>
+                                    <span class="badge bg-info">
+                                        {% if registered_count > 0 %}
+                                            {{ "%.0f"|format(reviewed_count / registered_count * 100) }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 数据统计图表区域 -->
+{% if registered_count > 0 %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart"></i> 参与数据统计
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="p-3">
+                            <div class="display-6 text-primary">{{ registered_count }}</div>
+                            <small class="text-muted">总报名活动</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="p-3">
+                            <div class="display-6 text-success">{{ reviewed_count }}</div>
+                            <small class="text-muted">已评价活动</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="p-3">
+                            <div class="display-6 text-warning">{{ registered_count - reviewed_count }}</div>
+                            <small class="text-muted">待评价活动</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="p-3">
+                            <div class="display-6 text-info">
+                                {% if registered_count > 0 %}
+                                    {{ "%.1f"|format(reviewed_count / registered_count * 100) }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">评价完成率</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置进度条宽度
+        const progressBars = document.querySelectorAll('.progress-bar[data-width]');
+        progressBars.forEach(bar => {
+            const width = bar.getAttribute('data-width');
+            bar.style.width = width + '%';
+            
+            // 添加动画效果
+            bar.style.transition = 'width 1s ease-in-out';
+        });
+
+        // 添加卡片悬停效果
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'transform 0.2s ease';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // 更新页面标题显示用户名
+        const username = "{{ user.username }}";
+        document.title = `${username}的个人资料 - 校园活动系统`;
+
+        // 显示数据更新时间
+        const updateTime = new Date().toLocaleString('zh-CN');
+        console.log(`页面数据更新时间: ${updateTime}`);
+    });
+</script>
+{% endblock %}

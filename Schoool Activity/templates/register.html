@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}用户注册 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-success text-white text-center py-3">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-person-plus"></i> 用户注册
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label fw-semibold">
+                                <i class="bi bi-person"></i> 用户名
+                            </label>
+                            <input type="text" class="form-control" id="username" name="username" required 
+                                   minlength="3" placeholder="请输入用户名（至少3个字符）">
+                            <div class="form-text">用户名将用于登录系统</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label fw-semibold">
+                                <i class="bi bi-envelope"></i> 邮箱（可选）
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="请输入邮箱地址">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label fw-semibold">
+                                <i class="bi bi-key"></i> 密码
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password" required 
+                                   minlength="6" placeholder="请输入密码（至少6个字符）">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="confirm_password" class="form-label fw-semibold">
+                                <i class="bi bi-key-fill"></i> 确认密码
+                            </label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required 
+                                   placeholder="请再次输入密码">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-person-badge"></i> 用户类型
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card h-100 border-2 {% if request.form.get('role', 'student') == 'student' %}border-primary{% else %}border-light{% endif %}">
+                                    <div class="card-body text-center">
+                                        <input class="form-check-input" type="radio" name="role" id="student" value="student" 
+                                               {% if request.form.get('role', 'student') == 'student' %}checked{% endif %}>
+                                        <label class="form-check-label d-block" for="student">
+                                            <i class="bi bi-person display-6 text-primary"></i>
+                                            <h5 class="mt-2">学生</h5>
+                                            <small class="text-muted">报名参与活动，评价活动体验</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100 border-2 {% if request.form.get('role', 'student') == 'club' %}border-primary{% else %}border-light{% endif %}" id="club-card">
+                                    <div class="card-body text-center">
+                                        <input class="form-check-input" type="radio" name="role" id="club" value="club"
+                                               {% if request.form.get('role', 'student') == 'club' %}checked{% endif %}>
+                                        <label class="form-check-label d-block" for="club">
+                                            <i class="bi bi-people display-6 text-success"></i>
+                                            <h5 class="mt-2">社团</h5>
+                                            <small class="text-muted">发布管理活动，查看活动报告</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 许可证字段（仅社团注册时显示） -->
+                    <div class="mb-4" id="license-field" style="display: none;">
+                        <label for="license_key" class="form-label fw-semibold">
+                            <i class="bi bi-shield-check"></i> 社团许可证
+                        </label>
+                        <input type="text" class="form-control" id="license_key" name="license_key" 
+                               placeholder="请输入学校颁发的社团许可证">
+                        <div class="form-text">只有获得学校许可的社团才能注册，请联系学校管理部门获取许可证</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-person-plus"></i> 注册
+                        </button>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                            已有账号？立即登录
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const studentRadio = document.getElementById('student');
+        const clubRadio = document.getElementById('club');
+        const licenseField = document.getElementById('license-field');
+        const licenseInput = document.getElementById('license_key');
+        
+        // 初始状态检查
+        if (clubRadio.checked) {
+            licenseField.style.display = 'block';
+            licenseInput.required = true;
+        }
+        
+        // 用户类型切换事件
+        studentRadio.addEventListener('change', function() {
+            if (this.checked) {
+                licenseField.style.display = 'none';
+                licenseInput.required = false;
+                licenseInput.value = '';
+            }
+        });
+        
+        clubRadio.addEventListener('change', function() {
+            if (this.checked) {
+                licenseField.style.display = 'block';
+                licenseInput.required = true;
+            }
+        });
+        
+        // 表单提交前的验证
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if (clubRadio.checked && !licenseInput.value.trim()) {
+                e.preventDefault();
+                alert('请填写社团许可证');
+                licenseInput.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,539 @@
+{% extends "base.html" %}
+
+{% block title %}活动报告 - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary">
+        <i class="bi bi-graph-up"></i> 活动报告: {{ event.title }}
+    </h2>
+    <div>
+        <a href="{{ url_for('export_event_data', event_id=event.id) }}" 
+           class="btn btn-success me-2" id="exportBtn">
+            <i class="bi bi-download"></i> 导出数据
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回仪表盘
+        </a>
+    </div>
+</div>
+
+<!-- 关键指标 -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center py-3">
+                <h3>{{ registrations|length }}/{{ event.max_participants }}</h3>
+                <p class="mb-0">报名人数</p>
+                <small>
+                    {% if event.max_participants > 0 %}
+                    报名率: {{ "%.1f"|format(registrations|length / event.max_participants * 100) }}%
+                    {% else %}
+                    报名率: 0%
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center py-3">
+                <h3>{{ reviews|length }}</h3>
+                <p class="mb-0">收到评价</p>
+                <small>
+                    {% if registrations|length > 0 %}
+                    评价率: {{ "%.1f"|format(reviews|length / registrations|length * 100) }}%
+                    {% else %}
+                    评价率: 0%
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center py-3">
+                <h3>{{ "%.1f"|format(avg_content) }}</h3>
+                <p class="mb-0">内容评分</p>
+                <small class="score-stars">
+                    {% for i in range(avg_content|round|int) %}
+                        <i class="bi bi-star-fill"></i>
+                    {% endfor %}
+                    {% for i in range(5 - (avg_content|round|int)) %}
+                        <i class="bi bi-star"></i>
+                    {% endfor %}
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center py-3">
+                <h3>{{ "%.1f"|format(avg_organization) }}</h3>
+                <p class="mb-0">组织评分</p>
+                <small class="score-stars">
+                    {% for i in range(avg_organization|round|int) %}
+                        <i class="bi bi-star-fill"></i>
+                    {% endfor %}
+                    {% for i in range(5 - (avg_organization|round|int)) %}
+                        <i class="bi bi-star"></i>
+                    {% endfor %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- 报名趋势图 -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up-arrow"></i> 报名趋势
+                </h5>
+                <small>实时数据</small>
+            </div>
+            <div class="card-body">
+                <canvas id="registrationChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- 评价详情 -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-star"></i> 评价详情 ({{ reviews|length }} 条评价)
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if reviews %}
+                    <div class="row mb-4">
+                        <div class="col-md-6 text-center">
+                            <h6>内容丰富度</h6>
+                            <div class="display-4 text-primary">{{ "%.1f"|format(avg_content) }}</div>
+                            <div class="score-stars mb-3">
+                                {% for i in range(avg_content|round|int) %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% endfor %}
+                                {% for i in range(5 - (avg_content|round|int)) %}
+                                    <i class="bi bi-star"></i>
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">基于 {{ reviews|length }} 条评价</small>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <h6>组织有序性</h6>
+                            <div class="display-4 text-success">{{ "%.1f"|format(avg_organization) }}</div>
+                            <div class="score-stars mb-3">
+                                {% for i in range(avg_organization|round|int) %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% endfor %}
+                                {% for i in range(5 - (avg_organization|round|int)) %}
+                                    <i class="bi bi-star"></i>
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">基于 {{ reviews|length }} 条评价</small>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-4">
+                        <div class="p-3 bg-light rounded">
+                            <h5 class="text-info mb-2">综合评分</h5>
+                            <div class="display-3 text-info">{{ "%.1f"|format((avg_content + avg_organization) / 2) }}</div>
+                            <div class="score-stars">
+                                {% set overall_rating = ((avg_content + avg_organization) / 2)|round|int %}
+                                {% for i in range(overall_rating) %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% endfor %}
+                                {% for i in range(5 - overall_rating) %}
+                                    <i class="bi bi-star"></i>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mb-3">用户评价详情</h6>
+                    {% for review in reviews %}
+                        <div class="card mb-3 border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <strong class="d-block">{{ review.username }}</strong>
+                                        <small class="text-muted">{{ review.reviewed_at[:16] if review.reviewed_at else '' }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="mb-1">
+                                            <small class="text-muted">内容: </small>
+                                            {% for i in range(review.content_score) %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% endfor %}
+                                            {% for i in range(5 - review.content_score) %}
+                                                <i class="bi bi-star text-warning"></i>
+                                            {% endfor %}
+                                            <span class="badge bg-primary ms-1">{{ review.content_score }}分</span>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">组织: </small>
+                                            {% for i in range(review.organization_score) %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% endfor %}
+                                            {% for i in range(5 - review.organization_score) %}
+                                                <i class="bi bi-star text-warning"></i>
+                                            {% endfor %}
+                                            <span class="badge bg-primary ms-1">{{ review.organization_score }}分</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if review.comment %}
+                                    <div class="mt-2 p-3 bg-light rounded">
+                                        <p class="mb-0">{{ review.comment }}</p>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted mb-0 mt-2"><i>该用户没有留下具体评价</i></p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-chat-dots display-4 text-muted"></i>
+                        <h5 class="mt-3 text-muted">暂无评价</h5>
+                        <p class="text-muted">活动尚未收到任何评价</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- 活动信息 -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> 活动信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td><strong>标题:</strong></td>
+                        <td>{{ event.title }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>描述:</strong></td>
+                        <td>{{ event.description or '暂无描述' }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>开始时间:</strong></td>
+                        <td>{{ event.date_time }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>结束时间:</strong></td>
+                        <td>{{ event.end_time }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>地点:</strong></td>
+                        <td>{{ event.location }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>人数限制:</strong></td>
+                        <td>{{ event.max_participants }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>实际报名:</strong></td>
+                        <td>{{ registrations|length }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>报名率:</strong></td>
+                        <td>
+                            {% if event.max_participants > 0 %}
+                            {{ "%.1f"|format(registrations|length / event.max_participants * 100) }}%
+                            {% else %}
+                            0%
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>评价率:</strong></td>
+                        <td>
+                            {% if registrations|length > 0 %}
+                            {{ "%.1f"|format(reviews|length / registrations|length * 100) }}%
+                            {% else %}
+                            0%
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>综合评分:</strong></td>
+                        <td><strong class="text-info">{{ "%.1f"|format((avg_content + avg_organization) / 2) }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 报名名单 -->
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people"></i> 报名名单 ({{ registrations|length }} 人)
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if registrations %}
+                    <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                        {% for reg in registrations %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">{{ reg.username }}</div>
+                                    {% if reg.email %}
+                                        <small class="text-muted">{{ reg.email }}</small>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted text-nowrap">{{ reg.registered_at[:16] if reg.registered_at else '' }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer bg-light">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> 共 {{ registrations|length }} 人报名
+                        </small>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-people display-4 text-muted"></i>
+                        <p class="text-muted mt-2 mb-0">暂无报名记录</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 评分分布 -->
+        {% if reviews %}
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart"></i> 评分分布
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">内容丰富度分布</small>
+                    {% for i in range(5, 0, -1) %}
+                    <div class="d-flex align-items-center mb-2">
+                        <small class="text-muted me-2" style="width: 20px;">{{ i }}星</small>
+                        <div class="progress flex-grow-1" style="height: 8px;">
+                            {% set content_count = reviews|selectattr('content_score', 'equalto', i)|list|length %}
+                            {% set content_percent = (content_count / reviews|length * 100) if reviews|length > 0 else 0 %}
+                            <div class="progress-bar bg-primary" data-width="{{ content_percent }}"></div>
+                        </div>
+                        <small class="text-muted ms-2" style="width: 30px;">{{ "%.0f"|format(content_percent) }}%</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">组织有序性分布</small>
+                    {% for i in range(5, 0, -1) %}
+                    <div class="d-flex align-items-center mb-2">
+                        <small class="text-muted me-2" style="width: 20px;">{{ i }}星</small>
+                        <div class="progress flex-grow-1" style="height: 8px;">
+                            {% set org_count = reviews|selectattr('organization_score', 'equalto', i)|list|length %}
+                            {% set org_percent = (org_count / reviews|length * 100) if reviews|length > 0 else 0 %}
+                            <div class="progress-bar bg-success" data-width="{{ org_percent }}"></div>
+                        </div>
+                        <small class="text-muted ms-2" style="width: 30px;">{{ "%.0f"|format(org_percent) }}%</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置进度条宽度
+        const progressBars = document.querySelectorAll('.progress-bar[data-width]');
+        progressBars.forEach(bar => {
+            const width = bar.getAttribute('data-width');
+            bar.style.width = width + '%';
+            bar.style.transition = 'width 1s ease-in-out';
+        });
+
+        // 获取报名趋势数据
+        fetch("{{ url_for('registration_trend', event_id=event.id) }}")
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(data.error);
+                    document.getElementById('registrationChart').innerHTML = 
+                        '<div class="text-center text-muted py-4"><i class="bi bi-exclamation-triangle"></i> 无法加载图表数据</div>';
+                    return;
+                }
+
+                const ctx = document.getElementById('registrationChart').getContext('2d');
+                
+                // 如果数据为空，显示提示
+                if (!data.dates || data.dates.length === 0) {
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['暂无数据'],
+                            datasets: [{
+                                label: '报名趋势',
+                                data: [0],
+                                borderColor: 'rgb(108, 117, 125)',
+                                backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: '报名趋势 - 暂无数据'
+                                }
+                            }
+                        }
+                    });
+                    return;
+                }
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.dates,
+                        datasets: [{
+                            label: '每日报名人数',
+                            data: data.daily_counts,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            tension: 0.1,
+                            fill: true
+                        }, {
+                            label: '累计报名人数',
+                            data: data.cumulative_counts,
+                            borderColor: 'rgb(54, 162, 235)',
+                            borderWidth: 2,
+                            tension: 0.1,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '活动报名趋势'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '报名人数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '日期'
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'nearest'
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('registrationChart').innerHTML = 
+                    '<div class="text-center text-muted py-4"><i class="bi bi-exclamation-triangle"></i> 加载图表数据失败</div>';
+            });
+
+        // 导出按钮点击效果
+        const exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                // 显示加载状态
+                const originalHTML = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-hourglass-split"></i> 导出中...';
+                this.disabled = true;
+                
+                // 3秒后恢复按钮状态（防止重复点击）
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.disabled = false;
+                }, 3000);
+            });
+        }
+
+        // 页面加载统计
+        console.log('活动报告页面加载完成');
+        console.log(`活动: {{ event.title }}`);
+        console.log(`报名人数: {{ registrations|length }}`);
+        console.log(`评价数量: {{ reviews|length }}`);
+        console.log(`平均评分: {{ "%.1f"|format((avg_content + avg_organization) / 2) }}`);
+    });
+</script>
+
+<style>
+    .score-stars {
+        color: #ffc107;
+        font-size: 1.1em;
+    }
+    
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .list-group-item {
+        transition: all 0.2s ease;
+    }
+    
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .progress-bar {
+        transition: width 1s ease-in-out;
+    }
+    
+    #exportBtn {
+        transition: all 0.3s ease;
+    }
+    
+    #exportBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .table-sm td {
+        padding: 0.3rem;
+        vertical-align: top;
+    }
+    
+    .table-sm tr:not(:last-child) {
+        border-bottom: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}

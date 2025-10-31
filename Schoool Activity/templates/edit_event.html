@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}编辑活动 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-pencil"></i> 编辑活动
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <!-- 活动信息概览 -->
+                <div class="alert alert-info mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-info-circle display-6 me-3"></i>
+                        <div>
+                            <h6 class="alert-heading mb-1">编辑活动信息</h6>
+                            <p class="mb-0">您正在编辑 "<strong>{{ event.title }}</strong>" 活动</p>
+                            <small class="text-muted">当前已有 {{ registered_count }} 人报名</small>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post" id="editEventForm">
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-semibold">
+                            <i class="bi bi-pencil"></i> 活动标题
+                        </label>
+                        <input type="text" class="form-control" id="title" name="title" required
+                               value="{{ event.title }}"
+                               placeholder="请输入活动标题">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-semibold">
+                            <i class="bi bi-text-paragraph"></i> 活动描述
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="4"
+                                  placeholder="请详细描述活动内容、流程、参与要求等信息...">{{ event.description or '' }}</textarea>
+                        <div class="form-text">详细的活动描述能吸引更多参与者</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date_time" class="form-label fw-semibold">
+                                <i class="bi bi-calendar"></i> 活动时间
+                            </label>
+                            <input type="datetime-local" class="form-control" id="date_time" name="date_time" required
+                                   value="{{ event.date_time.replace(' ', 'T')[:16] }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label fw-semibold">
+                                <i class="bi bi-geo-alt"></i> 活动地点
+                            </label>
+                            <input type="text" class="form-control" id="location" name="location" required
+                                   value="{{ event.location }}"
+                                   placeholder="例如：计算机学院101教室">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="max_participants" class="form-label fw-semibold">
+                            <i class="bi bi-people"></i> 最大参与人数
+                        </label>
+                        <input type="number" class="form-control" id="max_participants" name="max_participants" 
+                               min="{{ registered_count }}" max="1000" required 
+                               value="{{ event.max_participants }}"
+                               data-current="{{ registered_count }}">
+                        <div class="form-text">
+                            当前已有 <span class="text-primary">{{ registered_count }}</span> 人报名，
+                            新设置的人数不能少于当前报名人数
+                        </div>
+                    </div>
+
+                    <!-- 活动状态信息 -->
+                    <div class="card border-info mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="card-title mb-0">
+                                <i class="bi bi-info-circle"></i> 活动状态信息
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-md-4 mb-2">
+                                    <small class="text-muted d-block">活动状态</small>
+                                    {% if event.status == 'upcoming' %}
+                                        <span class="badge bg-success">即将开始</span>
+                                    {% elif event.status == 'ongoing' %}
+                                        <span class="badge bg-warning">进行中</span>
+                                    {% elif event.status == 'completed' %}
+                                        <span class="badge bg-info">已结束</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ event.status }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <small class="text-muted d-block">报名进度</small>
+                                    <span class="badge {% if registered_count >= event.max_participants %}bg-danger{% else %}bg-success{% endif %}">
+                                        {{ registered_count }}/{{ event.max_participants }}
+                                    </span>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <small class="text-muted d-block">报名率</small>
+                                    <span class="badge bg-primary">
+                                        {% if event.max_participants > 0 %}
+                                            {{ "%.1f"|format(registered_count / event.max_participants * 100) }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="bi bi-check-circle"></i> 保存更改
+                        </button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> 取消返回
+                        </a>
+                    </div>
+                </form>
+
+                <!-- 危险操作区域 -->
+                {% if event.status == 'upcoming' or event.status == 'ongoing' %}
+                <div class="card border-danger mt-4">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-exclamation-triangle"></i> 危险操作
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-info-circle"></i> 
+                            以下操作不可逆，请谨慎操作
+                        </p>
+                        <div class="d-grid gap-2">
+                            {% if event.status == 'upcoming' %}
+                            <a href="{{ url_for('cancel_event', event_id=event.id) }}" 
+                               class="btn btn-outline-warning btn-sm"
+                               onclick="return confirm('确定要取消活动 {{ event.title }} 吗？已报名的 {{ registered_count }} 名参与者将收到通知。')">
+                                <i class="bi bi-x-circle"></i> 取消活动
+                            </a>
+                            {% endif %}
+                            <a href="{{ url_for('delete_event', event_id=event.id) }}" 
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('⚠️ 确定要永久删除活动 {{ event.title }} 吗？此操作将删除所有相关数据，包括 {{ registered_count }} 条报名记录和评价数据，且无法恢复！')">
+                                <i class="bi bi-trash"></i> 删除活动
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('editEventForm');
+        const dateTimeInput = document.getElementById('date_time');
+        const maxParticipantsInput = document.getElementById('max_participants');
+        const currentParticipants = parseInt(maxParticipantsInput.getAttribute('data-current'));
+        
+        // 设置时间输入的最小值
+        const now = new Date();
+        const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        
+        // 如果活动还未开始，设置最小时间为当前时间
+        const eventTime = new Date(dateTimeInput.value);
+        if (eventTime > now) {
+            dateTimeInput.min = localDateTime;
+        }
+
+        // 人数限制验证
+        maxParticipantsInput.addEventListener('change', function() {
+            const newMax = parseInt(this.value);
+            if (newMax < currentParticipants) {
+                alert('错误：当前已有 ' + currentParticipants + ' 人报名，人数限制不能少于当前报名人数。');
+                this.value = Math.max(currentParticipants, 1);
+                this.focus();
+            }
+        });
+
+        // 表单提交验证
+        form.addEventListener('submit', function(e) {
+            const dateTime = new Date(dateTimeInput.value);
+            const now = new Date();
+            const maxParticipants = parseInt(maxParticipantsInput.value);
+
+            // 验证时间
+            if (dateTime <= now) {
+                e.preventDefault();
+                alert('活动时间必须晚于当前时间。');
+                dateTimeInput.focus();
+                return;
+            }
+
+            // 验证人数
+            if (maxParticipants < currentParticipants) {
+                e.preventDefault();
+                alert('错误：当前已有 ' + currentParticipants + ' 人报名，人数限制不能少于当前报名人数。');
+                maxParticipantsInput.focus();
+                return;
+            }
+
+            if (maxParticipants < 1) {
+                e.preventDefault();
+                alert('参与人数必须大于0。');
+                maxParticipantsInput.focus();
+                return;
+            }
+
+            // 显示保存提示
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalHTML = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 保存中...';
+            submitBtn.disabled = true;
+        });
+
+        // 输入变化提示
+        let hasChanges = false;
+        const inputs = document.querySelectorAll('input, textarea');
+        
+        inputs.forEach(function(input) {
+            const originalValue = input.value;
+            
+            input.addEventListener('input', function() {
+                hasChanges = true;
+            });
+        });
+
+        // 页面离开提示
+        window.addEventListener('beforeunload', function(e) {
+            if (hasChanges) {
+                e.preventDefault();
+                e.returnValue = '您有未保存的更改，确定要离开吗？';
+            }
+        });
+
+        // 表单提交时移除离开提示
+        form.addEventListener('submit', function() {
+            hasChanges = false;
+        });
+    });
+</script>
+
+<style>
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .form-control:focus {
+        border-color: #ffc107;
+        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+    }
+    
+    .btn-warning {
+        transition: all 0.3s ease;
+    }
+    
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+    }
+    
+    .border-danger {
+        border-width: 2px !important;
+    }
+</style>
+{% endblock %}

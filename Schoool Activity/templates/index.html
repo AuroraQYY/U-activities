@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="row align-items-center min-vh-80 py-5">
+    <div class="col-md-6">
+        <h1 class="display-4 fw-bold text-primary mb-4 fade-in-up">
+            发现校园精彩<br>
+            <span class="gradient-text">活动无限可能</span>
+        </h1>
+        <p class="lead fs-5 text-muted mb-4 fade-in-up" style="animation-delay: 0.2s">
+            连接社团与学生，打造活跃校园文化生态。发布活动、在线报名、实时互评，一切尽在掌握。
+        </p>
+        <div class="mt-4 fade-in-up" style="animation-delay: 0.4s">
+            {% if not session.user_id %}
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3 px-4 pulse">
+                    <i class="bi bi-person-plus"></i> 立即注册
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg px-4">
+                    <i class="bi bi-box-arrow-in-right"></i> 登录体验
+                </a>
+            {% else %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4 pulse">
+                    <i class="bi bi-speedometer2"></i> 进入仪表盘
+                </a>
+            {% endif %}
+        </div>
+        
+        <!-- 统计数据 -->
+        <div class="row mt-5 fade-in-up" style="animation-delay: 0.6s">
+            <div class="col-4 text-center">
+                <h3 class="fw-bold text-primary mb-1">50+</h3>
+                <small class="text-muted">活跃社团</small>
+            </div>
+            <div class="col-4 text-center">
+                <h3 class="fw-bold text-success mb-1">200+</h3>
+                <small class="text-muted">精彩活动</small>
+            </div>
+            <div class="col-4 text-center">
+                <h3 class="fw-bold text-warning mb-1">5000+</h3>
+                <small class="text-muted">参与学生</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 text-center">
+        <div class="position-relative">
+            <div class="p-5 floating">
+                <i class="bi bi-calendar-event display-1 text-primary opacity-75"></i>
+            </div>
+            <div class="position-absolute top-0 start-0 w-100 h-100">
+                <div class="rounded-circle bg-primary opacity-10 position-absolute" 
+                     style="width: 200px; height: 200px; top: 20%; left: 20%;"></div>
+                <div class="rounded-circle bg-success opacity-10 position-absolute" 
+                     style="width: 150px; height: 150px; top: 60%; left: 60%;"></div>
+                <div class="rounded-circle bg-warning opacity-10 position-absolute" 
+                     style="width: 100px; height: 100px; top: 30%; left: 70%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 特性介绍 -->
+<div class="row mt-5 pt-5">
+    <div class="col-12 text-center mb-5">
+        <h2 class="fw-bold text-primary mb-3">为什么选择我们？</h2>
+        <p class="text-muted">一站式校园活动管理平台，为社团和学生提供最佳体验</p>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100 text-center feature-card">
+            <div class="card-body p-4">
+                <div class="feature-icon mb-3">
+                    <i class="bi bi-calendar-check display-4 text-primary"></i>
+                </div>
+                <h4 class="card-title fw-bold">智能活动发布</h4>
+                <p class="card-text text-muted">社团可轻松发布活动，设置时间地点，实时管理报名情况</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100 text-center feature-card">
+            <div class="card-body p-4">
+                <div class="feature-icon mb-3">
+                    <i class="bi bi-people display-4 text-success"></i>
+                </div>
+                <h4 class="card-title fw-bold">便捷在线报名</h4>
+                <p class="card-text text-muted">学生一键报名参与，实时查看活动状态，管理个人日程</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100 text-center feature-card">
+            <div class="card-body p-4">
+                <div class="feature-icon mb-3">
+                    <i class="bi bi-star display-4 text-warning"></i>
+                </div>
+                <h4 class="card-title fw-bold">真实活动评价</h4>
+                <p class="card-text text-muted">多维度的评价体系，帮助社团改进，提升活动质量</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 更多特性 -->
+<div class="row mt-3">
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100 text-center feature-card">
+            <div class="card-body p-4">
+                <div class="feature-icon mb-3">
+                    <i class="bi bi-graph-up display-4 text-info"></i>
+                </div>
+                <h4 class="card-title fw-bold">数据洞察分析</h4>
+                <p class="card-text text-muted">可视化数据报告，助力社团优化活动策划与执行</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100 text-center feature-card">
+            <div class="card-body p-4">
+                <div class="feature-icon mb-3">
+                    <i class="bi bi-search display-4 text-secondary"></i>
+                </div>
+                <h4 class="card-title fw-bold">智能搜索推荐</h4>
+                <p class="card-text text-muted">精准的活动搜索和个性化推荐，发现你感兴趣的内容</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100 text-center feature-card">
+            <div class="card-body p-4">
+                <div class="feature-icon mb-3">
+                    <i class="bi bi-shield-check display-4 text-success"></i>
+                </div>
+                <h4 class="card-title fw-bold">安全可靠保障</h4>
+                <p class="card-text text-muted">完善的权限管理和数据保护，确保用户信息安全无忧</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="row mt-5 py-5">
+    <div class="col-12 text-center">
+        <div class="card bg-primary text-white border-0">
+            <div class="card-body py-5">
+                <h3 class="card-title fw-bold mb-3">准备好开启精彩的校园生活了吗？</h3>
+                <p class="card-text mb-4 opacity-90">立即加入我们，发现更多精彩活动，结识志同道合的朋友</p>
+                {% if not session.user_id %}
+                <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-5">
+                    <i class="bi bi-rocket-takeoff"></i> 立即开始
+                </a>
+                {% else %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg px-5">
+                    <i class="bi bi-compass"></i> 探索活动
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .min-vh-80 {
+        min-height: 80vh;
+    }
+    
+    .gradient-text {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .feature-card {
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .feature-icon {
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1);
+    }
+    
+    .hero-stats {
+        backdrop-filter: blur(10px);
+        background: rgba(255,255,255,0.1);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 为特性卡片添加交错动画
+        const featureCards = document.querySelectorAll('.feature-card');
+        featureCards.forEach((card, index) => {
+            card.style.animationDelay = `${0.3 + index * 0.1}s`;
+            card.classList.add('fade-in-up');
+        });
+    });
+</script>
+{% endblock %}

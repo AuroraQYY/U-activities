@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}社团仪表盘 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary">
+        <i class="bi bi-speedometer2"></i> 社团仪表盘
+    </h2>
+    <div>
+        <a href="{{ url_for('create_event') }}" class="btn btn-primary me-2">
+            <i class="bi bi-plus-circle"></i> 发布新活动
+        </a>
+        <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-person"></i> 个人资料
+        </a>
+    </div>
+</div>
+
+<!-- 统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white stat-card">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-calendar-event display-6"></i>
+                <h4 class="mt-2">{{ events|length if events else 0 }}</h4>
+                <p class="mb-0">总活动数</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white stat-card">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-people display-6"></i>
+                <h4 class="mt-2">{{ total_participants if total_participants else 0 }}</h4>
+                <p class="mb-0">总参与人数</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white stat-card">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-clock display-6"></i>
+                <h4 class="mt-2">{{ upcoming_events if upcoming_events else 0 }}</h4>
+                <p class="mb-0">即将开始</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white stat-card">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-check-circle display-6"></i>
+                <h4 class="mt-2">{{ completed_events if completed_events else 0 }}</h4>
+                <p class="mb-0">已完成活动</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 状态分布卡片 -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card border-success">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-hourglass-split text-success display-6"></i>
+                <h4 class="mt-2 text-success">{{ upcoming_events if upcoming_events else 0 }}</h4>
+                <p class="mb-0">即将开始</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-warning">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-play-circle text-warning display-6"></i>
+                <h4 class="mt-2 text-warning">{{ ongoing_events if ongoing_events else 0 }}</h4>
+                <p class="mb-0">进行中</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-info">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-check-circle text-info display-6"></i>
+                <h4 class="mt-2 text-info">{{ completed_events if completed_events else 0 }}</h4>
+                <p class="mb-0">已结束</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近评价区域 -->
+{% if recent_reviews and recent_reviews|length > 0 %}
+<div class="card mb-4">
+    <div class="card-header bg-warning text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-star"></i> 最近评价
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for review in recent_reviews %}
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 border-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0 text-truncate" title="{{ review.event_title }}">
+                                {{ review.event_title }}
+                            </h6>
+                            <small class="text-muted">
+                                {{ review.reviewed_at[:16] if review.reviewed_at else '' }}
+                            </small>
+                        </div>
+                        
+                        <p class="card-text mb-2">
+                            <small class="text-muted">评价者: {{ review.student_name }}</small>
+                        </p>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">内容丰富度: </small>
+                            {% if review.content_score %}
+                                {% for i in range(review.content_score) %}
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                {% endfor %}
+                                {% for i in range(5 - review.content_score) %}
+                                    <i class="bi bi-star text-warning"></i>
+                                {% endfor %}
+                                <span class="badge bg-warning text-dark ms-1">
+                                    {{ review.content_score }}分
+                                </span>
+                            {% else %}
+                                <span class="text-muted">未评分</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">组织有序性: </small>
+                            {% if review.organization_score %}
+                                {% for i in range(review.organization_score) %}
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                {% endfor %}
+                                {% for i in range(5 - review.organization_score) %}
+                                    <i class="bi bi-star text-warning"></i>
+                                {% endfor %}
+                                <span class="badge bg-warning text-dark ms-1">
+                                    {{ review.organization_score }}分
+                                </span>
+                            {% else %}
+                                <span class="text-muted">未评分</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if review.comment %}
+                        <div class="mt-2 p-2 bg-light rounded">
+                            <small class="text-muted">"{{ review.comment }}"</small>
+                        </div>
+                        {% else %}
+                        <div class="mt-2">
+                            <small class="text-muted fst-italic">该用户没有留下具体评价</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 活动列表区域 -->
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-list-ul"></i> 我的活动
+        </h5>
+        <span class="badge bg-light text-primary">
+            {{ events|length if events else 0 }} 个活动
+        </span>
+    </div>
+    
+    <div class="card-body">
+        {% if events and events|length > 0 %}
+            <div class="row">
+                {% for event in events %}
+                <div class="col-lg-6 mb-4">
+                    <div class="card event-card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                            <h5 class="card-title mb-0 text-truncate" title="{{ event.title }}">
+                                {{ event.title }}
+                            </h5>
+                            <div>
+                                {% if event.status == 'upcoming' %}
+                                    <span class="badge bg-success">即将开始</span>
+                                {% elif event.status == 'ongoing' %}
+                                    <span class="badge bg-warning">进行中</span>
+                                {% elif event.status == 'completed' %}
+                                    <span class="badge bg-info">已结束</span>
+                                {% elif event.status == 'cancelled' %}
+                                    <span class="badge bg-danger">已取消</span>
+                                {% endif %}
+                                <span class="badge {% if event.registered_count >= event.max_participants %}bg-danger{% else %}bg-success{% endif %}">
+                                    {{ event.registered_count }}/{{ event.max_participants }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <p class="card-text text-muted">
+                                {{ event.description or '暂无描述' }}
+                            </p>
+                            
+                            <div class="mb-3">
+                                <div class="progress" style="height: 8px; background-color: #e9ecef; border-radius: 4px; overflow: hidden;">
+                                    <div class="progress-bar {% if event.registered_count >= event.max_participants %}bg-danger{% else %}bg-success{% endif %}" 
+                                         data-progress="{{ (event.registered_count * 100 / event.max_participants)|int }}">
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    报名进度: {{ (event.registered_count * 100 / event.max_participants)|int }}%
+                                </small>
+                            </div>
+                            
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item px-0">
+                                    <i class="bi bi-calendar text-primary"></i> 
+                                    <strong>开始时间:</strong> {{ event.date_time }}
+                                </li>
+                                <li class="list-group-item px-0">
+                                    <i class="bi bi-clock text-primary"></i> 
+                                    <strong>结束时间:</strong> {{ event.end_time }}
+                                </li>
+                                <li class="list-group-item px-0">
+                                    <i class="bi bi-geo-alt text-success"></i> 
+                                    <strong>地点:</strong> {{ event.location }}
+                                </li>
+                                <li class="list-group-item px-0">
+                                    <i class="bi bi-info-circle text-info"></i> 
+                                    <strong>状态:</strong> 
+                                    {% if event.status == 'upcoming' %}
+                                        <span class="badge bg-success">即将开始</span>
+                                    {% elif event.status == 'ongoing' %}
+                                        <span class="badge bg-warning">进行中</span>
+                                    {% elif event.status == 'completed' %}
+                                        <span class="badge bg-info">已结束</span>
+                                    {% elif event.status == 'cancelled' %}
+                                        <span class="badge bg-danger">已取消</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{{ url_for('event_report', event_id=event.id) }}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-graph-up"></i> 查看报告
+                                </a>
+                                <div>
+                                    {% if event.status == 'upcoming' or event.status == 'ongoing' %}
+                                        <a href="{{ url_for('end_event', event_id=event.id) }}" 
+                                           class="btn btn-outline-warning btn-sm me-1"
+                                           onclick="return confirm('确定要手动结束活动 {{ event.title }} 吗？')">
+                                            <i class="bi bi-stop-circle"></i> 结束活动
+                                        </a>
+                                    {% endif %}
+                                    {% if event.status == 'upcoming' %}
+                                        <a href="{{ url_for('edit_event', event_id=event.id) }}" 
+                                           class="btn btn-outline-secondary btn-sm me-1">
+                                            <i class="bi bi-pencil"></i> 编辑
+                                        </a>
+                                    {% endif %}
+                                    <a href="{{ url_for('delete_event', event_id=event.id) }}" 
+                                       class="btn btn-outline-danger btn-sm" 
+                                       onclick="return confirm('确定要删除活动 {{ event.title }} 吗？此操作将删除所有相关数据！')">
+                                        <i class="bi bi-trash"></i> 删除
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-plus display-1 text-muted"></i>
+                <h3 class="mt-3 text-muted">还没有发布任何活动</h3>
+                <p class="text-muted">发布您的第一个活动来吸引学生参与吧！</p>
+                <div class="mt-4">
+                    <a href="{{ url_for('create_event') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> 发布第一个活动
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 快速操作区域 -->
+{% if events and events|length > 0 %}
+<div class="card mt-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-lightning"></i> 快速操作
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="{{ url_for('create_event') }}" class="btn btn-outline-success w-100 h-100 py-3">
+                    <i class="bi bi-plus-circle display-6 d-block mb-2"></i>
+                    发布新活动
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('profile') }}" class="btn btn-outline-primary w-100 h-100 py-3">
+                    <i class="bi bi-person display-6 d-block mb-2"></i>
+                    个人资料
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('change_password') }}" class="btn btn-outline-warning w-100 h-100 py-3">
+                    <i class="bi bi-key display-6 d-block mb-2"></i>
+                    修改密码
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger w-100 h-100 py-3">
+                    <i class="bi bi-box-arrow-right display-6 d-block mb-2"></i>
+                    退出登录
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置进度条宽度
+        var progressBars = document.querySelectorAll('.progress-bar[data-progress]');
+        progressBars.forEach(function(bar) {
+            var width = bar.getAttribute('data-progress');
+            bar.style.width = width + '%';
+            bar.style.transition = 'width 0.3s ease';
+        });
+
+        // 添加活动卡片悬停效果
+        var eventCards = document.querySelectorAll('.event-card');
+        
+        eventCards.forEach(function(card) {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            });
+        });
+
+        // 自动刷新页面数据（每5分钟）
+        setTimeout(function() {
+            window.location.reload();
+        }, 300000);
+    });
+</script>
+{% endblock %}

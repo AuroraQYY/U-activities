@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}关于我们 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> 关于校园活动报名与互评系统
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="bi bi-calendar-event display-1 text-primary mb-3"></i>
+                    <h2>校园活动报名与互评系统</h2>
+                    <p class="lead text-muted">连接学生与社团，共建活跃校园文化</p>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4><i class="bi bi-target text-primary"></i> 系统目标</h4>
+                        <p>本系统旨在为校园内的学生和社团提供一个高效、便捷的活动管理平台，促进校园文化的繁荣发展。</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h4><i class="bi bi-lightning text-warning"></i> 核心功能</h4>
+                        <ul>
+                            <li>活动发布与管理</li>
+                            <li>在线报名系统</li>
+                            <li>活动评价反馈</li>
+                            <li>数据统计分析</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4><i class="bi bi-people text-success"></i> 用户群体</h4>
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">学生用户</h5>
+                                <p class="card-text">浏览活动、在线报名、参与评价</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">社团用户</h5>
+                                <p class="card-text">发布活动、管理报名、查看报告</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4><i class="bi bi-shield-check text-info"></i> 系统特色</h4>
+                        <div class="list-group">
+                            <div class="list-group-item">
+                                <i class="bi bi-graph-up text-primary"></i>
+                                <strong>数据驱动</strong> - 基于数据分析优化活动策划
+                            </div>
+                            <div class="list-group-item">
+                                <i class="bi bi-chat-heart text-success"></i>
+                                <strong>互动反馈</strong> - 建立活动组织者与参与者的沟通桥梁
+                            </div>
+                            <div class="list-group-item">
+                                <i class="bi bi-phone text-warning"></i>
+                                <strong>响应式设计</strong> - 支持各种设备访问
+                            </div>
+                            <div class="list-group-item">
+                                <i class="bi bi-safe text-info"></i>
+                                <strong>安全可靠</strong> - 完善的权限管理和数据保护
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <div class="alert alert-info">
+                        <i class="bi bi-megaphone"></i>
+                        <strong>版本信息:</strong> v1.0.0 | 
+                        <strong>技术支持:</strong> campus-support@example.com
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}个人资料 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people"></i> 社团信息
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-people display-1 text-success"></i>
+                </div>
+                <h4>{{ user.username }}</h4>
+                <p class="text-muted">社团账户</p>
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-envelope"></i> 
+                        {{ user.email or '未设置邮箱' }}
+                    </small>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar"></i> 
+                        注册时间: {{ user.created_at[:10] }}
+                    </small>
+                </div>
+                <a href="{{ url_for('change_password') }}" class="btn btn-outline-success w-100">
+                    <i class="bi bi-key"></i> 修改密码
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i> 社团统计
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border rounded bg-light">
+                            <h3 class="text-primary">{{ events_count }}</h3>
+                            <p class="mb-0">发布活动</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border rounded bg-light">
+                            <h3 class="text-success">{{ total_participants }}</h3>
+                            <p class="mb-0">总参与人数</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border rounded bg-light">
+                            <h3 class="text-info">{{ avg_rating }}</h3>
+                            <p class="mb-0">平均评分</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning"></i> 快速操作
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary w-100 h-100 py-3">
+                            <i class="bi bi-speedometer2 display-6 d-block mb-2"></i>
+                            仪表盘
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('create_event') }}" class="btn btn-outline-success w-100 h-100 py-3">
+                            <i class="bi bi-plus-circle display-6 d-block mb-2"></i>
+                            发布活动
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('change_password') }}" class="btn btn-outline-warning w-100 h-100 py-3">
+                            <i class="bi bi-key display-6 d-block mb-2"></i>
+                            修改密码
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger w-100 h-100 py-3">
+                            <i class="bi bi-box-arrow-right display-6 d-block mb-2"></i>
+                            退出登录
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

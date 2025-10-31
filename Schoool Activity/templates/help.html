@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}帮助中心 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-question-circle"></i> 帮助中心
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <!-- 快速导航 -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <a href="#student-guide" class="card text-decoration-none h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-person display-4 text-primary"></i>
+                                <h5 class="mt-2">学生使用指南</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <a href="#club-guide" class="card text-decoration-none h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people display-4 text-success"></i>
+                                <h5 class="mt-2">社团使用指南</h5>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 学生指南 -->
+                <div id="student-guide" class="mb-5">
+                    <h3 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-person text-primary"></i> 学生使用指南
+                    </h3>
+                    
+                    <div class="accordion" id="studentAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#student1">
+                                    如何注册学生账号？
+                                </button>
+                            </h2>
+                            <div id="student1" class="accordion-collapse collapse show" data-bs-parent="#studentAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>点击页面右上角的"注册"按钮</li>
+                                        <li>选择"学生"用户类型</li>
+                                        <li>填写用户名、密码等信息</li>
+                                        <li>点击"注册"完成账号创建</li>
+                                        <li>使用注册的账号登录系统</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#student2">
+                                    如何报名参加活动？
+                                </button>
+                            </h2>
+                            <div id="student2" class="accordion-collapse collapse" data-bs-parent="#studentAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>登录学生账号进入仪表盘</li>
+                                        <li>在"可报名活动"标签页浏览活动</li>
+                                        <li>点击活动卡片查看详情</li>
+                                        <li>点击"立即报名"按钮完成报名</li>
+                                        <li>在"已报名活动"标签页查看报名状态</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#student3">
+                                    如何评价已参加的活动？
+                                </button>
+                            </h2>
+                            <div id="student3" class="accordion-collapse collapse" data-bs-parent="#studentAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>活动结束后，在"待评价活动"标签页找到活动</li>
+                                        <li>点击"评价活动"按钮</li>
+                                        <li>对活动的内容丰富度和组织有序性进行评分</li>
+                                        <li>填写评价留言（可选）</li>
+                                        <li>点击"提交评价"完成评价</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 社团指南 -->
+                <div id="club-guide" class="mb-5">
+                    <h3 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-people text-success"></i> 社团使用指南
+                    </h3>
+                    
+                    <div class="accordion" id="clubAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#club1">
+                                    如何发布新活动？
+                                </button>
+                            </h2>
+                            <div id="club1" class="accordion-collapse collapse show" data-bs-parent="#clubAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>登录社团账号进入仪表盘</li>
+                                        <li>点击"发布新活动"按钮</li>
+                                        <li>填写活动标题、描述、时间、地点等信息</li>
+                                        <li>设置最大参与人数</li>
+                                        <li>点击"发布活动"完成创建</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#club2">
+                                    如何查看活动报告？
+                                </button>
+                            </h2>
+                            <div id="club2" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>在社团仪表盘找到目标活动</li>
+                                        <li>点击"查看报告"按钮</li>
+                                        <li>查看报名趋势图表</li>
+                                        <li>分析用户评价和评分</li>
+                                        <li>下载或导出报告数据</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#club3">
+                                    如何管理已发布的活动？
+                                </button>
+                            </h2>
+                            <div id="club3" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
+                                <div class="accordion-body">
+                                    <p>社团可以对已发布的活动进行以下管理操作：</p>
+                                    <ul>
+                                        <li><strong>编辑活动</strong>：修改活动信息（人数限制不能低于当前报名人数）</li>
+                                        <li><strong>查看报告</strong>：分析活动数据和用户反馈</li>
+                                        <li><strong>删除活动</strong>：删除活动及相关数据（谨慎操作）</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 常见问题 -->
+                <div class="mb-4">
+                    <h3 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-patch-question text-warning"></i> 常见问题
+                    </h3>
+                    
+                    <div class="list-group">
+                        <div class="list-group-item">
+                            <h6>Q: 忘记密码怎么办？</h6>
+                            <p class="mb-0">A: 请联系系统管理员重置密码，或使用注册时设置的密保问题找回密码。</p>
+                        </div>
+                        <div class="list-group-item">
+                            <h6>Q: 活动报名后可以取消吗？</h6>
+                            <p class="mb-0">A: 在活动开始前，学生可以在"已报名活动"页面取消报名。活动开始后无法取消。</p>
+                        </div>
+                        <div class="list-group-item">
+                            <h6>Q: 为什么无法评价某个活动？</h6>
+                            <p class="mb-0">A: 只有已报名且活动已结束的活动才能进行评价，每个活动只能评价一次。</p>
+                        </div>
+                        <div class="list-group-item">
+                            <h6>Q: 社团可以修改活动的时间吗？</h6>
+                            <p class="mb-0">A: 可以，但建议在活动开始前尽早修改，并及时通知已报名的学生。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 联系方式 -->
+                <div class="alert alert-warning">
+                    <h5><i class="bi bi-telephone"></i> 技术支持</h5>
+                    <p class="mb-1">如果您遇到系统问题或有其他疑问，请联系：</p>
+                    <ul class="mb-1">
+                        <li>技术支持邮箱: campus-activities@example.com</li>
+                        <li>服务热线: 888-888-8888</li>
+                        <li>服务时间: 工作日 9:00-18:00</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

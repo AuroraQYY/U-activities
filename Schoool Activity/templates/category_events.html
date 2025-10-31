@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }}分类活动 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="text-primary mb-1">
+            <i class="bi bi-tag"></i> {{ category.name }}
+        </h2>
+        <p class="text-muted mb-0">{{ category.description }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('categories') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left"></i> 返回分类
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+            <i class="bi bi-speedometer2"></i> 返回仪表盘
+        </a>
+    </div>
+</div>
+
+<!-- 分类信息卡片 -->
+<div class="card mb-4 border-0 shadow-sm category-header-card">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="card-title">{{ category.name }}</h5>
+                <p class="card-text text-muted mb-2">{{ category.description }}</p>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-primary me-2">
+                        <i class="bi bi-calendar-event"></i> {{ events|length }} 个活动
+                    </span>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> 点击活动卡片查看详情并报名
+                    </small>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="category-color-indicator rounded-circle d-inline-block" 
+                     data-color="{{ category.color }}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 活动列表 -->
+{% if events and events|length > 0 %}
+    <div class="row">
+        {% for event in events %}
+            <div class="col-xl-4 col-lg-6 mb-4">
+                <div class="card event-card h-100">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 text-truncate" style="max-width: 70%;" title="{{ event.title }}">
+                            {{ event.title }}
+                        </h5>
+                        <span class="badge category-badge" data-category="{{ category.name }}">
+                            {{ category.name }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text text-muted">{{ event.description or '暂无描述' }}</p>
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-person-badge"></i> 主办方: {{ event.club_name }}
+                            </small>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-calendar text-primary"></i> 
+                                <strong>时间:</strong> {{ event.date_time }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-geo-alt text-success"></i> 
+                                <strong>地点:</strong> {{ event.location }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-people text-info"></i> 
+                                <strong>人数:</strong> 
+                                <span class="{% if event.registered_count >= event.max_participants %}text-danger{% else %}text-success{% endif %}">
+                                    {{ event.registered_count }}/{{ event.max_participants }}
+                                </span>
+                            </li>
+                            <li class="list-group-item px-0">
+                                <i class="bi bi-info-circle text-warning"></i> 
+                                <strong>状态:</strong> 
+                                {% if event.status == 'upcoming' %}
+                                    <span class="badge bg-success">即将开始</span>
+                                {% elif event.status == 'ongoing' %}
+                                    <span class="badge bg-warning">进行中</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ event.status }}</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        {% if event.is_registered %}
+                            <button class="btn btn-success w-100 mb-2" disabled>
+                                <i class="bi bi-check-circle"></i> 已报名
+                            </button>
+                        {% elif event.registered_count >= event.max_participants %}
+                            <button class="btn btn-secondary w-100 mb-2" disabled>
+                                <i class="bi bi-x-circle"></i> 人数已满
+                            </button>
+                        {% else %}
+                            <a href="{{ url_for('register_event', event_id=event.id) }}" 
+                               class="btn btn-primary w-100 mb-2">
+                                <i class="bi bi-plus-circle"></i> 立即报名
+                            </a>
+                        {% endif %}
+                        
+                        <!-- 收藏按钮 -->
+                        <div class="text-center">
+                            {% if event.is_favorited %}
+                                <a href="{{ url_for('unfavorite_event', event_id=event.id) }}" 
+                                   class="btn btn-outline-danger btn-sm"
+                                   title="取消收藏">
+                                    <i class="bi bi-heart-fill"></i> 已收藏
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('favorite_event', event_id=event.id) }}" 
+                                   class="btn btn-outline-danger btn-sm"
+                                   title="收藏活动">
+                                    <i class="bi bi-heart"></i> 收藏
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-calendar-x display-1 text-muted"></i>
+        <h3 class="mt-3 text-muted">该分类下暂无活动</h3>
+        <p class="text-muted">当前没有 {{ category.name }} 分类的活动，请查看其他分类或稍后再来</p>
+        <div class="mt-4">
+            <a href="{{ url_for('categories') }}" class="btn btn-primary me-2">
+                <i class="bi bi-tags"></i> 查看其他分类
+            </a>
+            <a href="{{ url_for('search_events') }}" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i> 搜索活动
+            </a>
+        </div>
+    </div>
+{% endif %}
+
+<!-- 相关分类推荐 -->
+<div class="card mt-5">
+    <div class="card-header bg-light">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-lightning"></i> 浏览其他分类
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for cat in categories %}
+            <div class="col-md-3 col-6 mb-3">
+                <a href="{{ url_for('events_by_category', category_id=cat.id) }}" 
+                   class="btn btn-outline-secondary w-100 text-start p-3 category-link">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="category-color-dot me-2" data-color="{{ cat.color }}"></span>
+                        <strong>{{ cat.name }}</strong>
+                    </div>
+                    <small class="text-muted d-block">{{ cat.description or '暂无描述' }}</small>
+                    <small class="text-primary d-block mt-1">
+                        <i class="bi bi-calendar-event"></i> {{ cat.event_count or 0 }} 个活动
+                    </small>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 分类颜色映射
+        const categoryColors = {
+            '技术竞赛': '#dc3545',
+            '艺术创作': '#6f42c1', 
+            '体育运动': '#20c997',
+            '学术讲座': '#fd7e14',
+            '文艺表演': '#e83e8c',
+            '社会实践': '#28a745',
+            '技能培训': '#17a2b8',
+            '娱乐休闲': '#ffc107'
+        };
+
+        // 设置分类徽章颜色
+        const categoryBadges = document.querySelectorAll('.category-badge');
+        categoryBadges.forEach(badge => {
+            const categoryName = badge.getAttribute('data-category');
+            const color = categoryColors[categoryName] || '#6c757d';
+            badge.style.backgroundColor = color;
+            badge.style.color = 'white';
+        });
+
+        // 设置分类颜色指示器
+        const colorIndicators = document.querySelectorAll('.category-color-indicator');
+        colorIndicators.forEach(indicator => {
+            const color = indicator.getAttribute('data-color');
+            indicator.style.backgroundColor = color;
+            indicator.style.width = '40px';
+            indicator.style.height = '40px';
+            indicator.style.display = 'inline-block';
+            indicator.style.border = '2px solid #dee2e6';
+        });
+
+        // 设置分类颜色点
+        const colorDots = document.querySelectorAll('.category-color-dot');
+        colorDots.forEach(dot => {
+            const color = dot.getAttribute('data-color');
+            dot.style.backgroundColor = color;
+            dot.style.width = '12px';
+            dot.style.height = '12px';
+            dot.style.display = 'inline-block';
+            dot.style.borderRadius = '50%';
+        });
+
+        // 设置分类头部卡片边框颜色
+        const headerCard = document.querySelector('.category-header-card');
+        if (headerCard) {
+            const color = '{{ category.color }}';
+            headerCard.style.borderLeft = `4px solid ${color} !important`;
+        }
+
+        // 设置分类链接悬停效果
+        const categoryLinks = document.querySelectorAll('.category-link');
+        categoryLinks.forEach(link => {
+            const colorDot = link.querySelector('.category-color-dot');
+            if (colorDot) {
+                const color = colorDot.getAttribute('data-color');
+                
+                link.addEventListener('mouseenter', function() {
+                    this.style.borderLeftColor = color;
+                    this.style.backgroundColor = `${color}10`;
+                    colorDot.style.transform = 'scale(1.3)';
+                });
+                
+                link.addEventListener('mouseleave', function() {
+                    this.style.borderLeftColor = '';
+                    this.style.backgroundColor = '';
+                    colorDot.style.transform = 'scale(1)';
+                });
+            }
+        });
+
+        // 添加活动卡片悬停效果
+        const eventCards = document.querySelectorAll('.event-card');
+        eventCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            });
+        });
+
+        // 页面加载统计
+        console.log('分类活动页面加载完成');
+        console.log(`当前分类: {{ category.name }}`);
+        console.log(`活动数量: {{ events|length }}`);
+    });
+</script>
+
+<style>
+    .category-header-card {
+        transition: all 0.3s ease;
+    }
+    
+    .category-header-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+    }
+    
+    .category-color-indicator {
+        transition: all 0.3s ease;
+    }
+    
+    .category-color-indicator:hover {
+        transform: scale(1.1);
+    }
+    
+    .event-card {
+        transition: all 0.3s ease;
+    }
+    
+    .category-link {
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+        height: 100%;
+    }
+    
+    .category-color-dot {
+        transition: transform 0.3s ease;
+    }
+    
+    .category-badge {
+        font-size: 0.75em;
+        transition: all 0.3s ease;
+    }
+    
+    .event-card:hover .category-badge {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
