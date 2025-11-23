@@ -1,2 +1,2 @@
-# U-activities
-校园活动选择与互评系统网站
+# Projects
+软件结构课程作业
